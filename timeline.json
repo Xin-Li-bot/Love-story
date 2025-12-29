@@ -1,0 +1,44 @@
+{
+    "title": {
+        "media": {
+          "url": "https://images.unsplash.com/photo-1518199266791-5375a83190b7",
+          "caption": "Our Story"
+        },
+        "text": {
+          "headline": "我们的恋爱时光机",
+          "text": "<p>记录我们要走过的每一天</p>"
+        }
+    },
+    "events": [
+      {
+        "start_date": {
+          "year": 2023,
+          "month": 5,
+          "day": 20
+        },
+        "text": {
+          "headline": "第一次相遇",
+          "text": "<p>那是在图书馆的转角，你穿着白色的裙子...</p>"
+        },
+        "media": {
+          "url": "https://images.unsplash.com/photo-1522071820081-009f0129c71c",
+          "caption": "初见"
+        }
+      },
+      {
+        "start_date": {
+          "year": 2023,
+          "month": 6,
+          "day": 1
+        },
+        "text": {
+          "headline": "正式在一起",
+          "text": "<p>在这个特殊的日子，我们确定了关系。</p>"
+        },
+        "media": {
+          "url": "https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2",
+          "caption": "告白"
+        }
+      }
+    ]
+}
