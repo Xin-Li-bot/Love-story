@@ -92,12 +92,11 @@ with st.sidebar:
     st.image("static/20230318_初次相识.png", caption="我们的第一张合照")
     st.info("遇见你，是生命中最美好的意外。")
     with st.sidebar:
-        st.markdown("### 🎵 背景音乐")
+        st.markdown("### 🎵Merry Chirstmas Mr.Lawrence")
         # 使用 st.audio 播放器
         audio_file = open('static/love_song.mp3', 'rb')
         audio_bytes = audio_file.read()
         st.audio(audio_bytes, format='audio/mp3')
-        st.info("💡 提示：手动点击播放，让回忆伴随旋律~")
     st.write("---")
     st.markdown("📅 **重要日子**")
     st.write("💘 2022-12-25 正式在一起")
@@ -180,16 +179,49 @@ for i, photo in enumerate(photos):
         st.markdown('</div>', unsafe_allow_html=True)
 
 # --- 8. 互动寄语区 ---
-st.markdown("### 💌 爱的留言板")
-st.markdown('<div class="custom-card">', unsafe_allow_html=True)
-col_l, col_r = st.columns([2, 1])
+from streamlit_gsheets import GSheetsConnection
+import pandas as pd
 
-with col_l:
-    note = st.text_area("在这写下你想说的话...", placeholder="亲爱的雅婷，今天也超爱你哦！", height=150)
-    if st.button("按下这个按钮，发射爱心", use_container_width=True):
-        st.balloons()
-        st.snow()
-        st.success("爱心和雪花都送给你！愿你每天都开心 ❤️")
+st.header("💌 爱的留言板")
+st.markdown('<div class="custom-card">', unsafe_allow_html=True)
+
+# 建立数据库连接
+conn = st.connection("gsheets", type=GSheetsConnection)
+
+# 读取已有留言 (假设你的表格名为 "Messages")
+try:
+    existing_data = conn.read(worksheet="Sheet1", ttl="10m")
+except:
+    existing_data = pd.DataFrame(columns=["name", "content", "time"])
+
+# 留言输入区
+with st.form(key="message_form"):
+    name = st.text_input("你是谁？", placeholder="比如：李欣")
+    content = st.text_area("在这写下你想说的话...", placeholder="亲爱的雅婷，今天也超爱你哦！")
+    submit = st.form_submit_button("爱心和雪花都送给你！愿你每天都开心 ❤️")
+
+    if submit:
+        if name and content:
+            # 准备新数据
+            new_entry = pd.DataFrame([{"name": name, "content": content, "time": datetime.now().strftime("%Y-%m-%d %H:%M")}])
+            # 合并并更新
+            updated_df = pd.concat([existing_data, new_entry], ignore_index=True)
+            conn.update(worksheet="Sheet1", data=updated_df)
+            st.balloons()
+            st.success("留言成功！刷新页面即可看到新内容。")
+        else:
+            st.warning("名字和内容都要写哦！")
+
+# 留言展示区
+st.markdown("---")
+if not existing_data.empty:
+    for index, row in existing_data.iloc[::-1].iterrows(): # 倒序显示，最新的在上面
+        st.markdown(f"**{row['name']}** ({row['time']}):")
+        st.info(row['content'])
+else:
+    st.write("还没有留言，快来成为第一个留下脚印的人吧！")
+
+col_l, col_r = st.columns([2, 1])
 
 with col_r:
     st.markdown("""
