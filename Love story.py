@@ -120,7 +120,7 @@ st.markdown(f"""
             </div>
             <div style="width: 2px; height: 60px; background: rgba(255,255,255,0.3); @media (max-width: 600px) {{ display: none; }}"></div>
             <div style="min-width: 200px; margin: 10px;">
-                <p style="margin:0; font-size: 18px; opacity: 0.9;">距离三周年纪念日</p>
+                <p style="margin:0; font-size: 18px; opacity: 0.9;">距离四周年纪念日</p>
                 <h1 style="margin:0; font-size: 65px; color: white; border:none;">{days_to_anniversary} <span style="font-size: 20px;">Days</span></h1>
             </div>
         </div>
@@ -188,4 +188,5 @@ with col_r:
 
     未来的路，我也想和你一起写下去。
     """)
+
 st.markdown('</div>', unsafe_allow_html=True)
