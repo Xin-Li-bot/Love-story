@@ -179,48 +179,40 @@ for i, photo in enumerate(photos):
         st.markdown('</div>', unsafe_allow_html=True)
 
 # --- 8. 互动寄语区 ---
-from streamlit_gsheets import GSheetsConnection
-import pandas as pd
+import streamlit.components.v1 as components
 
-st.header("💌 爱的留言板")
-st.markdown('<div class="custom-card">', unsafe_allow_html=True)
-
-# 建立数据库连接
-conn = st.connection("gsheets", type=GSheetsConnection)
-
-# 读取已有留言 (假设你的表格名为 "Messages")
-try:
-    existing_data = conn.read(worksheet="Sheet1", ttl="10m")
-except:
-    existing_data = pd.DataFrame(columns=["name", "content", "time"])
-
-# 留言输入区
-with st.form(key="message_form"):
-    name = st.text_input("你是谁？", placeholder="比如：李欣")
-    content = st.text_area("在这写下你想说的话...", placeholder="亲爱的雅婷，今天也超爱你哦！")
-    submit = st.form_submit_button("爱心和雪花都送给你！愿你每天都开心 ❤️")
-
-    if submit:
-        if name and content:
-            # 准备新数据
-            new_entry = pd.DataFrame([{"name": name, "content": content, "time": datetime.now().strftime("%Y-%m-%d %H:%M")}])
-            # 合并并更新
-            updated_df = pd.concat([existing_data, new_entry], ignore_index=True)
-            conn.update(worksheet="Sheet1", data=updated_df)
-            st.balloons()
-            st.success("留言成功！刷新页面即可看到新内容。")
-        else:
-            st.warning("名字和内容都要写哦！")
-
-# 留言展示区
+# --- 8. 互动寄语区 ---
 st.markdown("---")
-if not existing_data.empty:
-    for index, row in existing_data.iloc[::-1].iterrows(): # 倒序显示，最新的在上面
-        st.markdown(f"**{row['name']}** ({row['time']}):")
-        st.info(row['content'])
-else:
-    st.write("还没有留言，快来成为第一个留下脚印的人吧！")
+st.markdown("<h3 style='text-align: center; color: #ff4b4b;'>💌 我们的爱的留言板</h3>", unsafe_allow_html=True)
 
+# 使用你的 Giscus 配置
+giscus_code = """
+<div class="giscus" style="margin-top: 20px;"></div>
+<script src="https://giscus.app/client.js"
+        data-repo="Xin-Li-bot/Love-story"
+        data-repo-id="R_kgDOQwppsQ"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOQwppsc4C0h3w"
+        data-mapping="pathname"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="bottom"
+        data-theme="light"
+        data-lang="zh-CN"
+        crossorigin="anonymous"
+        async>
+</script>
+"""
+
+# 在自定义卡片容器中渲染
+st.markdown('<div class="custom-card">', unsafe_allow_html=True)
+# 增加 scrolling=True 以防留言变多时撑破页面
+components.html(giscus_code, height=600, scrolling=True)
+st.markdown('</div>', unsafe_allow_html=True)
+
+# --- 9. 结尾寄语 ---
+st.markdown("<p style='text-align: center; color: #888; font-size: 0.9rem; margin-top: 50px;'>每一份回忆，都值得被温柔对待。❤️</p>", unsafe_allow_html=True)
 col_l, col_r = st.columns([2, 1])
 
 with col_r:
