@@ -1,4 +1,4 @@
 streamlit
 streamlit-timeline
 Pillow
-st-gsheets-connection
+requests

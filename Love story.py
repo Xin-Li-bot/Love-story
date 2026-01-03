@@ -1,73 +1,76 @@
-from datetime import datetime
 import streamlit as st
 from streamlit_timeline import timeline
+from datetime import datetime
+import json
+import requests
+import base64
 
-# --- 1. 页面配置 ---
+# --- 1. 基础配置与 LeanCloud API ---
 st.set_page_config(page_title="李欣 & 王雅婷 的恋爱纪念册", page_icon="❤️", layout="wide")
-# 这样可以确保你的图片能通过 Web 访问
-def get_image_url(photo_name):
-    # 尝试使用 Streamlit 官方推荐的静态资源访问格式
-    return f"app/static/{photo_name}"
 
-# --- 2. 深度美化 (高级 CSS) ---
+# 请确保这些信息与你 LeanCloud 后台一致
+APP_ID = "rNQ4ydw7DzQ5ODonN28y1FUy-gzGzoHsz"
+APP_KEY = "BduhONbH6Gh6I3VtywhWgZZJ"
+# 注意：国内版必须有 REST API 服务器地址，通常在 设置 -> 应用凭证 中找到
+SERVER_URL = "https://rnq4ydw7.lc-cn-n1-shared.com"
+
+
+def save_message(name, content):
+    """通过 REST API 保存留言"""
+    url = f"{SERVER_URL}/1.1/classes/Message"
+    headers = {
+        "X-LC-Id": APP_ID,
+        "X-LC-Key": APP_KEY,
+        "Content-Type": "application/json"
+    }
+    data = {
+        "name": name,
+        "content": content,
+        "time": datetime.now().strftime("%Y-%m-%d %H:%M")
+    }
+    try:
+        return requests.post(url, headers=headers, json=data, timeout=5)
+    except:
+        return None
+
+
+def get_messages():
+    """通过 REST API 获取留言列表"""
+    url = f"{SERVER_URL}/1.1/classes/Message?order=-createdAt&limit=20"
+    headers = {
+        "X-LC-Id": APP_ID,
+        "X-LC-Key": APP_KEY
+    }
+    try:
+        res = requests.get(url, headers=headers, timeout=5)
+        return res.json().get('results', [])
+    except:
+        return []
+
+
+# --- 2. 核心美化 CSS ---
 def local_css():
     st.markdown("""
         <style>
-        /* 全局背景色 */
-        .stApp {
-            background-color: #fff5f5;
-            font-family: 'Microsoft YaHei', sans-serif;
-        }
+        .stApp { background-color: #fff5f5; font-family: 'Microsoft YaHei', sans-serif; }
 
-        /* 隐藏页眉，但保留侧边栏展开按钮的可见性 */
-        [data-testid="stHeader"] {
-            background: rgba(0,0,0,0); /* 背景透明 */
-        }
+        /* 侧边栏及呼出按钮修复 */
+        [data-testid="stHeader"] { background: rgba(0,0,0,0); }
+        button[kind="headerNoPadding"] { visibility: visible !important; z-index: 9999; color: #ff4b4b !important; }
 
-        /* 强制显示并置顶侧边栏呼出按钮 */
-        button[kind="headerNoPadding"] {
-            visibility: visible !important;
-            z-index: 999999;
-            color: #ff4b4b !important; /* 让按钮变成红色，更显眼 */
-        }
-
-        /* 自定义卡片样式 - 毛玻璃感 */
+        /* 全局卡片样式 */
         .custom-card {
             background: rgba(255, 255, 255, 0.8);
             backdrop-filter: blur(10px);
             padding: 25px;
             border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(255, 182, 193, 0.3);
+            box-shadow: 0 10px 30px rgba(255, 182, 193, 0.2);
             margin-bottom: 25px;
             border: 1px solid rgba(255, 255, 255, 0.4);
         }
 
-        /* 标题样式 */
-        .main-title {
-            color: #ff4b4b;
-            text-align: center;
-            font-weight: 800;
-            font-size: 3rem;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.05);
-        }
+        .main-title { color: #ff4b4b; text-align: center; font-weight: 800; font-size: 3rem; margin-bottom: 0; }
 
-        /* 图片装饰 */
-        .stImage img {
-            border-radius: 15px;
-            transition: transform 0.4s ease;
-        }
-        .stImage img:hover {
-            transform: translateY(-5px);
-        }
-
-        /* 侧边栏样式 */
-        section[data-testid="stSidebar"] {
-            background-color: white;
-            border-right: 1px solid #ffe4e6;
-        }
-
-        /* 爱心动效 */
         @keyframes heartBeat {
             0% { transform: scale(1); }
             14% { transform: scale(1.1); }
@@ -75,158 +78,141 @@ def local_css():
             42% { transform: scale(1.1); }
             70% { transform: scale(1); }
         }
-        .heart-icon {
-            display: inline-block;
-            animation: heartBeat 2s infinite;
-            color: #ff4b4b;
-        }
+        .heart-icon { display: inline-block; animation: heartBeat 2s infinite; color: #ff4b4b; }
         </style>
     """, unsafe_allow_html=True)
 
 
 local_css()
 
-# --- 3. 侧边栏：档案 ---
+# --- 3. 侧边栏：档案与音乐 ---
 with st.sidebar:
     st.markdown("<h2 style='text-align:center;'>💖 爱情档案</h2>", unsafe_allow_html=True)
-    st.image("static/20230318_初次相识.png", caption="我们的第一张合照")
-    st.info("遇见你，是生命中最美好的意外。")
-    with st.sidebar:
-        st.markdown("### 🎵Merry Chirstmas Mr.Lawrence")
-        # 使用 st.audio 播放器
+    try:
+        st.image("static/20230318_初次相识.png", caption="我们的第一张合照")
+    except:
+        st.info("请确保图片位于 static/ 目录下")
+
+    st.markdown("---")
+    st.markdown("🎵 **Merry Christmas Mr.Lawrence**")
+    try:
         audio_file = open('static/love_song.mp3', 'rb')
-        audio_bytes = audio_file.read()
-        st.audio(audio_bytes, format='audio/mp3')
-    st.write("---")
+        st.audio(audio_file.read(), format='audio/mp3')
+    except:
+        st.caption("💿 待上传: static/love_song.mp3")
+
+    st.markdown("---")
     st.markdown("📅 **重要日子**")
     st.write("💘 2022-12-25 正式在一起")
     st.write("🎂 08-06 雅婷的生日")
     st.write("---")
-    st.write("Made with ❤️ by 世界上最爱你的人")
+    st.caption("Made with ❤️ by 世界上最爱你的人")
 
-# --- 4. 头部氛围 ---
+# --- 4. 头部天数看板 ---
 st.markdown("<h1 class='main-title'>👩‍❤️‍👨 我们的恋爱时光机 <span class='heart-icon'>❤️</span></h1>",
             unsafe_allow_html=True)
-st.markdown("<p style='text-align: center; color: #888; font-size: 1.1rem;'>既然琴瑟起，何以笙箫默</p>",
-            unsafe_allow_html=True)
-st.write("")
+st.markdown("<p style='text-align: center; color: #888;'>既然琴瑟起，何以笙箫默</p>", unsafe_allow_html=True)
 
-# --- 5. 恋爱天数与倒计时卡片 ---
 start_date = datetime(2022, 12, 25)
 now = datetime.now()
 days_together = (now - start_date).days
 
-this_year_anniversary = datetime(now.year, 12, 25)
-if now > this_year_anniversary:
-    next_anniversary = datetime(now.year + 1, 12, 25)
-else:
-    next_anniversary = this_year_anniversary
-days_to_anniversary = (next_anniversary - now).days
+# 计算下个纪念日
+this_year_anniv = datetime(now.year, 12, 25)
+next_anniv = this_year_anniv if now <= this_year_anniv else datetime(now.year + 1, 12, 25)
+days_to_anniv = (next_anniv - now).days
 
-# 精修后的卡片 HTML
 st.markdown(f"""
     <div style="background: linear-gradient(135deg, #ff758c 0%, #ff7eb3 100%); 
                 padding: 40px; border-radius: 25px; text-align: center; color: white; 
                 margin-bottom: 35px; box-shadow: 0 15px 35px rgba(255,117,140,0.3);">
         <div style="display: flex; justify-content: space-around; align-items: center; flex-wrap: wrap;">
-            <div style="min-width: 200px; margin: 10px;">
-                <p style="margin:0; font-size: 18px; opacity: 0.9;">我们已经相爱了</p>
-                <h1 style="margin:0; font-size: 65px; color: white; border:none;">{days_together} <span style="font-size: 20px;">Days</span></h1>
+            <div style="min-width: 180px;">
+                <p style="margin:0; opacity: 0.8;">我们已相爱</p>
+                <h1 style="margin:0; font-size: 60px; color: white; border:none;">{days_together} <small style="font-size:20px;">天</small></h1>
             </div>
-            <div style="width: 2px; height: 60px; background: rgba(255,255,255,0.3); @media (max-width: 600px) {{ display: none; }}"></div>
-            <div style="min-width: 200px; margin: 10px;">
-                <p style="margin:0; font-size: 18px; opacity: 0.9;">距离四周年纪念日</p>
-                <h1 style="margin:0; font-size: 65px; color: white; border:none;">{days_to_anniversary} <span style="font-size: 20px;">Days</span></h1>
+            <div style="min-width: 180px;">
+                <p style="margin:0; opacity: 0.8;">距离四周年</p>
+                <h1 style="margin:0; font-size: 60px; color: white; border:none;">{days_to_anniv} <small style="font-size:20px;">天</small></h1>
             </div>
         </div>
-        <p style="margin-top:20px; margin-bottom:0; opacity: 0.7; font-size: 15px;">起始于 2022-12-25 · 永远陪伴</p>
     </div>
 """, unsafe_allow_html=True)
 
-# --- 6. 恋爱时光机 (时间轴) ---
+# --- 5. 恋爱时光机 (时间轴) ---
 st.markdown("### ⏳ 我们的回忆录")
 st.markdown('<div class="custom-card">', unsafe_allow_html=True)
-
 try:
     with open('timeline.json', "r", encoding='utf-8') as f:
-        # 直接读取生成的 Base64 JSON 即可，不需要再用 urllib 转义
-        timeline_data = f.read()
-        timeline(timeline_data, height=700)
-except Exception as e:
-    st.error("时间轴加载失败，请确保已运行 update_timeline.py 并提交 JSON 文件。")
-
+        timeline(f.read(), height=700)
+except:
+    st.error("请先运行 update_timeline.py 生成 timeline.json")
 st.markdown('</div>', unsafe_allow_html=True)
 
-# --- 7. 甜蜜照片墙 ---
+# --- 6. 照片墙 ---
 st.markdown("### 📸 那些美好的瞬间")
 photos = [
     {"url": "static/20230318_初次相识.png", "cap": "故事的开始"},
     {"url": "static/20230503_第一次旅行.png", "cap": "想和你去全世界"},
     {"url": "static/20251226_一起看海.jpg", "cap": "最美的那一天"}
 ]
-
 cols = st.columns(3)
 for i, photo in enumerate(photos):
     with cols[i % 3]:
         st.markdown('<div class="custom-card" style="padding:10px;">', unsafe_allow_html=True)
         try:
             st.image(photo["url"], use_container_width=True)
-            st.markdown(
-                f"<p style='text-align:center; color:#666; margin-top:10px; font-weight:bold;'>{photo['cap']}</p>",
-                unsafe_allow_html=True)
+            st.markdown(f"<p style='text-align:center; color:#666; margin-top:5px;'>{photo['cap']}</p>",
+                        unsafe_allow_html=True)
         except:
-            st.warning(f"图片丢失: {photo['url']}")
+            st.caption(f"缺失图片: {photo['url']}")
         st.markdown('</div>', unsafe_allow_html=True)
 
-# --- 8. 互动寄语区 ---
-import streamlit.components.v1 as components
-
-# --- 8. 互动寄语区 ---
+# --- 7. 互动留言区 (REST API 版) ---
 st.markdown("---")
-st.markdown("<h3 style='text-align: center; color: #ff4b4b;'>💌 我们的爱的留言板</h3>", unsafe_allow_html=True)
-
-# 使用你的 Giscus 配置
-giscus_code = f"""
-<div class="giscus" style="margin-top: 20px;"></div>
-<script src="https://giscus.app/client.js"
-        data-repo="Xin-Li-bot/Love-story"
-        data-repo-id="R_kgDOQwppsQ"
-        data-category="Announcements"
-        data-category-id="DIC_kwDOQwppsc4C0h3w"
-        data-mapping="pathname"
-        data-strict="0"
-        data-reactions-enabled="1"
-        data-emit-metadata="0"
-        data-input-position="bottom"
-        data-theme="light"
-        data-lang="zh-CN"
-        crossorigin="anonymous"
-        async>
-</script>
-"""
-
-# 在自定义卡片容器中渲染
+st.markdown("<h3 style='text-align: center; color: #ff4b4b;'>💌 爱的留言板</h3>", unsafe_allow_html=True)
 st.markdown('<div class="custom-card">', unsafe_allow_html=True)
-# 增加 scrolling=True 以防留言变多时撑破页面
-components.html(giscus_code, height=600, scrolling=True)
+
+with st.form(key="msg_form", clear_on_submit=True):
+    c1, c2 = st.columns([1, 3])
+    u_name = c1.text_input("署名")
+    u_content = c2.text_area("寄语", placeholder="写下你的悄悄话...", height=100)
+    if st.form_submit_button("🚀 发射爱心留言"):
+        if u_name and u_content:
+            res = save_message(u_name, u_content)
+            if res and res.status_code == 201:
+                st.balloons()
+                st.rerun()
+            else:
+                st.error("由于网络延迟，留言发射失败，请稍后再试。")
+        else:
+            st.warning("名字和内容都要填哦~")
+
+# 显示留言列表
+st.markdown("---")
+messages = get_messages()
+if messages:
+    for m in messages:
+        st.markdown(f"""
+        <div style="background: white; padding: 15px; border-radius: 12px; margin-bottom: 12px; border-left: 5px solid #ff758c; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+            <strong style="color: #ff4b4b;">{m.get('name')}</strong> <small style="color: #999;">({m.get('time')})</small><br>
+            <p style="margin-top: 5px; color: #444;">{m.get('content')}</p>
+        </div>
+        """, unsafe_allow_html=True)
+else:
+    st.write("还没有留言哦，快来写下第一条吧~")
 st.markdown('</div>', unsafe_allow_html=True)
 
-# --- 9. 结尾寄语 ---
-st.markdown("<p style='text-align: center; color: #888; font-size: 0.9rem; margin-top: 50px;'>每一份回忆，都值得被温柔对待。❤️</p>", unsafe_allow_html=True)
-col_l, col_r = st.columns([2, 1])
-
-with col_r:
+# --- 8. 结尾寄语 ---
+st.markdown("<br>", unsafe_allow_html=True)
+cl, cr = st.columns([2, 1])
+with cl:
+    st.markdown("<p style='color: #888; margin-top: 30px;'>每一份回忆，都值得被温柔对待。❤️</p>", unsafe_allow_html=True)
+with cr:
     st.markdown("""
-    **致雅婷：**
-
-    亲爱的，
-
-    Python 可以循环千遍，但我对你的爱一遍就足够恒久。
-
-    这个小网页是我为你搭建的港湾，
-    记录我们走过的每一步。
-
+    <div style="background: #fff; padding: 20px; border-radius: 15px; border: 1px dashed #ffb6c1;">
+    <strong>致雅婷：</strong><br>
+    Python 可以循环千遍，但我对你的爱一遍就足够恒久。<br><br>
     未来的路，我也想和你一起写下去。
-    """)
-
-st.markdown('</div>', unsafe_allow_html=True)
+    </div>
+    """, unsafe_allow_html=True)
