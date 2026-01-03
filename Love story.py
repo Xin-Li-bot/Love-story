@@ -13,14 +13,23 @@ def get_image_url(photo_name):
 def local_css():
     st.markdown("""
         <style>
-        /* 全局背景色与字体 */
+        /* 全局背景色 */
         .stApp {
             background-color: #fff5f5;
             font-family: 'Microsoft YaHei', sans-serif;
         }
 
-        /* 隐藏 Streamlit 默认页眉 */
-        header {visibility: hidden;}
+        /* 隐藏页眉，但保留侧边栏展开按钮的可见性 */
+        [data-testid="stHeader"] {
+            background: rgba(0,0,0,0); /* 背景透明 */
+        }
+
+        /* 强制显示并置顶侧边栏呼出按钮 */
+        button[kind="headerNoPadding"] {
+            visibility: visible !important;
+            z-index: 999999;
+            color: #ff4b4b !important; /* 让按钮变成红色，更显眼 */
+        }
 
         /* 自定义卡片样式 - 毛玻璃感 */
         .custom-card {
@@ -82,6 +91,13 @@ with st.sidebar:
     st.markdown("<h2 style='text-align:center;'>💖 爱情档案</h2>", unsafe_allow_html=True)
     st.image("static/20230318_初次相识.png", caption="我们的第一张合照")
     st.info("遇见你，是生命中最美好的意外。")
+    with st.sidebar:
+        st.markdown("### 🎵 背景音乐")
+        # 使用 st.audio 播放器
+        audio_file = open('static/love_song.mp3', 'rb')
+        audio_bytes = audio_file.read()
+        st.audio(audio_bytes, format='audio/mp3')
+        st.info("💡 提示：手动点击播放，让回忆伴随旋律~")
     st.write("---")
     st.markdown("📅 **重要日子**")
     st.write("💘 2022-12-25 正式在一起")
@@ -188,5 +204,4 @@ with col_r:
 
     未来的路，我也想和你一起写下去。
     """)
-
 st.markdown('</div>', unsafe_allow_html=True)
