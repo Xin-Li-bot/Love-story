@@ -186,7 +186,7 @@ st.markdown("---")
 st.markdown("<h3 style='text-align: center; color: #ff4b4b;'>💌 我们的爱的留言板</h3>", unsafe_allow_html=True)
 
 # 使用你的 Giscus 配置
-giscus_code = """
+giscus_code = f"""
 <div class="giscus" style="margin-top: 20px;"></div>
 <script src="https://giscus.app/client.js"
         data-repo="Xin-Li-bot/Love-story"
@@ -228,4 +228,5 @@ with col_r:
 
     未来的路，我也想和你一起写下去。
     """)
+
 st.markdown('</div>', unsafe_allow_html=True)
