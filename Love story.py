@@ -127,7 +127,26 @@ st.markdown(f"""
         <p style="margin-top:20px; margin-bottom:0; opacity: 0.7; font-size: 15px;">起始于 2022-12-25 · 永远陪伴</p>
     </div>
 """, unsafe_allow_html=True)
+# --- 在读取 timeline.json 之后修改数据 ---
+with open('timeline.json', "r", encoding='utf-8') as f:
+    import json
+    data_dict = json.load(f)
+    
+    # 强制修正所有图片的 URL 路径
+    # 在 Streamlit Cloud 上，'/app/static/' 是最稳妥的绝对映射
+    for event in data_dict.get("events", []):
+        if "media" in event and "url" in event["media"]:
+            img_name = event["media"]["url"].split('/')[-1]
+            event["media"]["url"] = f"/app/static/{img_name}"
+    
+    # 修正标题图
+    if "title" in data_dict and "media" in data_dict["title"]:
+        img_name = data_dict["title"]["media"]["url"].split('/')[-1]
+        data_dict["title"]["media"]["url"] = f"/app/static/{img_name}"
 
+    # 将修改后的字典重新转回字符串传给组件
+    final_data = json.dumps(data_dict)
+    timeline(final_data, height=700)
 # --- 6. 恋爱时光机 (时间轴) ---
 st.markdown("### ⏳ 我们的回忆录")
 st.markdown('<div class="custom-card">', unsafe_allow_html=True)
@@ -187,3 +206,4 @@ with col_r:
     """)
 
 st.markdown('</div>', unsafe_allow_html=True)
+
