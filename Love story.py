@@ -4,7 +4,10 @@ from streamlit_timeline import timeline
 
 # --- 1. 页面配置 ---
 st.set_page_config(page_title="李欣 & 王雅婷 的恋爱纪念册", page_icon="❤️", layout="wide")
-
+# 这样可以确保你的图片能通过 Web 访问
+def get_image_url(photo_name):
+    # 尝试使用 Streamlit 官方推荐的静态资源访问格式
+    return f"app/static/{photo_name}"
 
 # --- 2. 深度美化 (高级 CSS) ---
 def local_css():
@@ -182,4 +185,5 @@ with col_r:
 
     未来的路，我也想和你一起写下去。
     """)
+
 st.markdown('</div>', unsafe_allow_html=True)
