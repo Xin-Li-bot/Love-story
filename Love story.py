@@ -127,57 +127,21 @@ st.markdown(f"""
         <p style="margin-top:20px; margin-bottom:0; opacity: 0.7; font-size: 15px;">起始于 2022-12-25 · 永远陪伴</p>
     </div>
 """, unsafe_allow_html=True)
-# --- 在读取 timeline.json 之后修改数据 ---
-with open('timeline.json', "r", encoding='utf-8') as f:
-    import json
 
-    data_dict = json.load(f)
-
-    # 强制修正所有图片的 URL 路径
-    # 在 Streamlit Cloud 上，'/app/static/' 是最稳妥的绝对映射
-    for event in data_dict.get("events", []):
-        if "media" in event and "url" in event["media"]:
-            img_name = event["media"]["url"].split('/')[-1]
-            event["media"]["url"] = f"/app/static/{img_name}"
-
-    # 修正标题图
-    if "title" in data_dict and "media" in data_dict["title"]:
-        img_name = data_dict["title"]["media"]["url"].split('/')[-1]
-        data_dict["title"]["media"]["url"] = f"/app/static/{img_name}"
-
-    # 将修改后的字典重新转回字符串传给组件
-    final_data = json.dumps(data_dict)
-    timeline(final_data, height=700)
 # --- 6. 恋爱时光机 (时间轴) ---
 st.markdown("### ⏳ 我们的回忆录")
 st.markdown('<div class="custom-card">', unsafe_allow_html=True)
-import json
-import urllib.parse
 
-# 读取原始 JSON
-with open('timeline.json', "r", encoding='utf-8') as f:
-    data_dict = json.load(f)
+try:
+    with open('timeline.json', "r", encoding='utf-8') as f:
+        # 直接读取生成的 Base64 JSON 即可，不需要再用 urllib 转义
+        timeline_data = f.read()
+        timeline(timeline_data, height=700)
+except Exception as e:
+    st.error("时间轴加载失败，请确保已运行 update_timeline.py 并提交 JSON 文件。")
 
-# 核心：对时间轴里的路径进行“安全编码”
-for event in data_dict.get("events", []):
-    if "media" in event and "url" in event["media"]:
-        original_url = event["media"]["url"]
-        # 如果路径里包含中文，手动进行 URL 编码
-        # 这样能确保 TimelineJS 插件在请求时，服务器能听懂
-        path_parts = original_url.split('/')
-        filename = path_parts[-1]
-        # 只编码文件名部分，保留 app/static/ 结构
-        safe_filename = urllib.parse.quote(filename)
-        event["media"]["url"] = f"/app/static/{safe_filename}"
+st.markdown('</div>', unsafe_allow_html=True)
 
-# 同样的逻辑处理标题图
-if "title" in data_dict and "media" in data_dict["title"]:
-    t_url = data_dict["title"]["media"]["url"]
-    t_filename = t_url.split('/')[-1]
-    data_dict["title"]["media"]["url"] = f"/app/static/{urllib.parse.quote(t_filename)}"
-
-# 将处理后的数据传给组件
-timeline(json.dumps(data_dict), height=700)
 # --- 7. 甜蜜照片墙 ---
 st.markdown("### 📸 那些美好的瞬间")
 photos = [
