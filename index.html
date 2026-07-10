@@ -1,694 +1,651 @@
 <!DOCTYPE html>
 <html lang="zh-CN" class="scroll-smooth">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>李欣 ❤️ 王雅婷 · 我们的故事</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>李欣 ❤️ 王雅婷 | Love Story</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            rosegold: {
+              50: '#fdf4f7',
+              100: '#f8e9ee',
+              300: '#d6a0ad',
+              500: '#b56f7f',
+              700: '#844f5c'
+            }
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+    .glass {
+      background: rgba(255, 255, 255, 0.72);
+      backdrop-filter: saturate(180%) blur(18px);
+      -webkit-backdrop-filter: saturate(180%) blur(18px);
+    }
+    .dark .glass {
+      background: rgba(16, 16, 16, 0.72);
+    }
+    .soft-card {
+      border-radius: 1.25rem;
+      border: 1px solid rgba(0, 0, 0, 0.06);
+      background: #fafafa;
+      transition: transform .3s ease, box-shadow .3s ease;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, .04);
+    }
+    .soft-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 32px rgba(181, 111, 127, .12);
+    }
+    .dark .soft-card {
+      background: #171717;
+      border-color: rgba(255, 255, 255, 0.08);
+    }
+    .gallery-item img {
+      transition: transform .45s ease;
+    }
+    .gallery-item:hover img {
+      transform: scale(1.05);
+    }
+    .hidden-scrollbar::-webkit-scrollbar {
+      width: 0;
+      height: 0;
+    }
+    #lightbox.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    @keyframes rise {
+      0% { transform: translateY(0) scale(1); opacity: 1; }
+      100% { transform: translateY(-140px) scale(.35); opacity: 0; }
+    }
+    .heart-particle {
+      position: fixed;
+      z-index: 60;
+      pointer-events: none;
+      animation: rise 2.1s ease-out forwards;
+      font-size: 1.25rem;
+    }
+  </style>
+</head>
+<body class="bg-white text-neutral-900 dark:bg-black dark:text-white">
+  <audio id="bgm" loop preload="none">
+    <source src="/static/love_song.mp3" type="audio/mpeg">
+  </audio>
 
-<!-- Tailwind CSS -->
-<script src="https://cdn.tailwindcss.com"></script>
-<!-- Lucide Icons -->
-<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-<!-- Canvas Confetti -->
-<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+  <nav class="glass fixed top-0 inset-x-0 z-40 border-b border-white/20 dark:border-white/10">
+    <div class="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between">
+      <a href="/" class="flex items-center gap-2 font-semibold tracking-tight">
+        <span class="text-lg">❤️</span>
+        <span>李欣 <span class="text-rosegold-500">&</span> 王雅婷</span>
+      </a>
+      <div id="public-nav-links" class="hidden md:flex items-center gap-6 text-sm text-neutral-500 dark:text-neutral-300">
+        <a href="#timeline" class="hover:text-rosegold-500 transition-colors">时光机</a>
+        <a href="#gallery" class="hover:text-rosegold-500 transition-colors">相册</a>
+        <a href="#wishlist" class="hover:text-rosegold-500 transition-colors">心愿单</a>
+        <a href="#messages" class="hover:text-rosegold-500 transition-colors">留言板</a>
+      </div>
+      <div class="flex items-center gap-2">
+        <button id="music-btn" type="button" class="w-9 h-9 rounded-full bg-rosegold-50 text-rosegold-700 dark:bg-neutral-800 dark:text-rosegold-300 flex items-center justify-center hover:-translate-y-1 transition-all duration-300">
+          <i data-lucide="music-2" class="w-4 h-4"></i>
+        </button>
+        <a href="/admin" class="w-9 h-9 rounded-full bg-rosegold-50 text-rosegold-700 dark:bg-neutral-800 dark:text-rosegold-300 flex items-center justify-center hover:-translate-y-1 transition-all duration-300">
+          <i data-lucide="shield" class="w-4 h-4"></i>
+        </a>
+      </div>
+    </div>
+  </nav>
 
-<script>
-tailwind.config = {
-  theme: {
-    extend: {
-      colors: {
-        rg: { DEFAULT:'#b76e79', light:'#d4a0aa', dark:'#8b4d57', bg:'#fdf2f4', card:'#f9ecee' }
+  <main id="public-app" class="pt-16">
+    <section class="min-h-[82vh] flex items-center">
+      <div class="max-w-6xl mx-auto px-6 py-20 w-full">
+        <p class="text-rosegold-500 text-sm tracking-[0.25em] uppercase mb-6">Love Story</p>
+        <h1 class="text-5xl md:text-7xl font-bold tracking-tight leading-tight mb-5">李欣 与 王雅婷</h1>
+        <p class="text-neutral-600 dark:text-neutral-300 text-lg md:text-xl mb-10">从 2022-12-25 开始，我们一直在写同一本故事书。</p>
+        <div class="grid sm:grid-cols-2 gap-4 max-w-2xl">
+          <div class="soft-card p-6 bg-neutral-50 dark:bg-neutral-900">
+            <p class="text-sm text-neutral-500 mb-2">在一起的天数</p>
+            <p id="days-count" class="text-4xl font-bold tracking-tight">--</p>
+          </div>
+          <div class="soft-card p-6 bg-neutral-50 dark:bg-neutral-900">
+            <p class="text-sm text-neutral-500 mb-2">距离下个周年</p>
+            <p id="anniversary-countdown" class="text-2xl font-bold tracking-tight">--</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="timeline" class="py-24 bg-neutral-50 dark:bg-neutral-950">
+      <div class="max-w-5xl mx-auto px-6">
+        <div class="mb-12">
+          <p class="text-rosegold-500 text-xs tracking-[0.25em] uppercase">Timeline</p>
+          <h2 class="text-4xl md:text-5xl font-bold tracking-tight mt-2">恋爱时光机</h2>
+        </div>
+        <div id="timeline-list" class="space-y-6"></div>
+      </div>
+    </section>
+
+    <section id="gallery" class="py-24">
+      <div class="max-w-6xl mx-auto px-6">
+        <div class="mb-12">
+          <p class="text-rosegold-500 text-xs tracking-[0.25em] uppercase">Photo Gallery</p>
+          <h2 class="text-4xl md:text-5xl font-bold tracking-tight mt-2">交互式相册</h2>
+        </div>
+        <div id="gallery-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+      </div>
+    </section>
+
+    <section id="wishlist" class="py-24 bg-neutral-50 dark:bg-neutral-950">
+      <div class="max-w-4xl mx-auto px-6">
+        <div class="mb-12">
+          <p class="text-rosegold-500 text-xs tracking-[0.25em] uppercase">Wishlist</p>
+          <h2 class="text-4xl md:text-5xl font-bold tracking-tight mt-2">恋爱心愿单</h2>
+        </div>
+        <div id="wishlist-list" class="grid md:grid-cols-2 gap-4"></div>
+      </div>
+    </section>
+
+    <section id="messages" class="py-24">
+      <div class="max-w-3xl mx-auto px-6">
+        <div class="mb-12">
+          <p class="text-rosegold-500 text-xs tracking-[0.25em] uppercase">Message Board</p>
+          <h2 class="text-4xl md:text-5xl font-bold tracking-tight mt-2">留言板</h2>
+        </div>
+        <div class="soft-card p-6 mb-6 bg-neutral-50 dark:bg-neutral-900">
+          <div class="space-y-3">
+            <input id="message-nickname" maxlength="20" class="w-full rounded-xl px-4 py-3 border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-950 outline-none focus:ring-2 focus:ring-rosegold-300" placeholder="昵称">
+            <textarea id="message-content" maxlength="500" rows="4" class="w-full rounded-xl px-4 py-3 border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-950 outline-none focus:ring-2 focus:ring-rosegold-300 resize-none" placeholder="写下想说的话"></textarea>
+            <button id="message-submit" class="w-full rounded-xl bg-rosegold-500 hover:bg-rosegold-700 text-white py-3 font-semibold hover:-translate-y-1 transition-all duration-300">发送留言</button>
+          </div>
+        </div>
+        <div id="message-list" class="space-y-4"></div>
+      </div>
+    </section>
+  </main>
+
+  <section id="admin-app" class="hidden pt-24 pb-16">
+    <div class="max-w-5xl mx-auto px-6">
+      <div class="mb-10">
+        <p class="text-rosegold-500 text-xs tracking-[0.25em] uppercase">Admin Backstage</p>
+        <h2 class="text-4xl md:text-5xl font-bold tracking-tight mt-2">秘密管理后台</h2>
+      </div>
+
+      <div id="admin-login-box" class="soft-card p-7 max-w-md bg-neutral-50 dark:bg-neutral-900">
+        <p class="text-sm text-neutral-500 mb-3">输入口令以管理时光机、照片和留言审核。</p>
+        <input id="admin-password" type="password" class="w-full rounded-xl px-4 py-3 border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-950 outline-none focus:ring-2 focus:ring-rosegold-300" placeholder="管理员口令">
+        <button id="admin-login-btn" class="mt-3 w-full rounded-xl bg-rosegold-500 hover:bg-rosegold-700 text-white py-3 font-semibold hover:-translate-y-1 transition-all duration-300">登录后台</button>
+        <p id="admin-login-error" class="text-sm text-red-500 mt-2 min-h-[20px]"></p>
+      </div>
+
+      <div id="admin-panel" class="hidden space-y-6">
+        <div class="soft-card p-6 bg-neutral-50 dark:bg-neutral-900">
+          <h3 class="text-2xl font-bold tracking-tight mb-4">新增时光机节点</h3>
+          <div class="grid md:grid-cols-2 gap-3">
+            <input id="timeline-date" type="date" class="rounded-xl px-4 py-3 border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-950 outline-none focus:ring-2 focus:ring-rosegold-300">
+            <input id="timeline-title" maxlength="120" class="rounded-xl px-4 py-3 border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-950 outline-none focus:ring-2 focus:ring-rosegold-300" placeholder="标题">
+            <textarea id="timeline-description" rows="4" maxlength="2000" class="md:col-span-2 rounded-xl px-4 py-3 border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-950 outline-none focus:ring-2 focus:ring-rosegold-300 resize-none" placeholder="描述"></textarea>
+            <input id="timeline-image" class="md:col-span-2 rounded-xl px-4 py-3 border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-950 outline-none focus:ring-2 focus:ring-rosegold-300" placeholder="图片 URL 或 data:image/...base64,...">
+          </div>
+          <div class="mt-4 flex flex-wrap items-center gap-3">
+            <input id="upload-file" type="file" accept="image/*" class="text-sm">
+            <select id="upload-mode" class="rounded-xl px-3 py-2 border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-950">
+              <option value="file">保存为本地文件</option>
+              <option value="base64">转为 Base64</option>
+            </select>
+            <button id="upload-btn" class="rounded-xl px-4 py-2 bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-900 hover:-translate-y-1 transition-all duration-300">上传图片并回填</button>
+          </div>
+          <button id="timeline-add-btn" class="mt-4 rounded-xl bg-rosegold-500 hover:bg-rosegold-700 text-white px-5 py-3 font-semibold hover:-translate-y-1 transition-all duration-300">添加节点</button>
+        </div>
+
+        <div class="soft-card p-6 bg-neutral-50 dark:bg-neutral-900">
+          <h3 class="text-2xl font-bold tracking-tight mb-4">新增心愿</h3>
+          <div class="flex gap-3">
+            <input id="wish-title" maxlength="120" class="flex-1 rounded-xl px-4 py-3 border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-950 outline-none focus:ring-2 focus:ring-rosegold-300" placeholder="例如：去看极光">
+            <button id="wish-add-btn" class="rounded-xl px-4 py-3 bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-900 hover:-translate-y-1 transition-all duration-300">添加</button>
+          </div>
+        </div>
+
+        <div class="soft-card p-6 bg-neutral-50 dark:bg-neutral-900">
+          <h3 class="text-2xl font-bold tracking-tight mb-4">留言审核</h3>
+          <div id="admin-message-list" class="space-y-3 max-h-[420px] overflow-y-auto hidden-scrollbar"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div id="lightbox" class="fixed inset-0 opacity-0 pointer-events-none transition-opacity duration-300 z-50 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4">
+    <button id="lb-close" class="absolute top-5 right-5 w-10 h-10 rounded-full bg-white/15 text-white flex items-center justify-center">
+      <i data-lucide="x" class="w-5 h-5"></i>
+    </button>
+    <button id="lb-zoom-out" class="absolute bottom-5 left-1/2 -translate-x-16 w-10 h-10 rounded-full bg-white/15 text-white flex items-center justify-center">
+      <i data-lucide="zoom-out" class="w-5 h-5"></i>
+    </button>
+    <button id="lb-zoom-in" class="absolute bottom-5 left-1/2 translate-x-16 w-10 h-10 rounded-full bg-white/15 text-white flex items-center justify-center">
+      <i data-lucide="zoom-in" class="w-5 h-5"></i>
+    </button>
+    <img id="lightbox-image" class="max-w-[92vw] max-h-[88vh] rounded-2xl object-contain transition-transform duration-200" alt="photo">
+  </div>
+
+  <div id="toast" class="fixed z-[70] bottom-6 left-1/2 -translate-x-1/2 bg-neutral-900 text-white text-sm px-4 py-2 rounded-full opacity-0 transition-opacity duration-300 pointer-events-none"></div>
+
+  <script>
+    const ANNIVERSARY = new Date('2022-12-25T00:00:00');
+    const IS_ADMIN_ROUTE = window.location.pathname === '/admin';
+    const PUBLIC_APP = document.getElementById('public-app');
+    const ADMIN_APP = document.getElementById('admin-app');
+    const PUBLIC_NAV_LINKS = document.getElementById('public-nav-links');
+
+    let adminToken = '';
+    let toastTimer = null;
+    let lbScale = 1;
+
+    function toast(message) {
+      const el = document.getElementById('toast');
+      el.textContent = message;
+      el.style.opacity = '1';
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => { el.style.opacity = '0'; }, 2500);
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function updateCounters() {
+      const now = new Date();
+      const days = Math.floor((now - ANNIVERSARY) / 86400000);
+      document.getElementById('days-count').textContent = days.toLocaleString();
+
+      const next = new Date(ANNIVERSARY);
+      next.setFullYear(now.getFullYear());
+      if (next <= now) next.setFullYear(now.getFullYear() + 1);
+      const diff = Math.max(0, next - now);
+      const d = Math.floor(diff / 86400000);
+      const h = Math.floor((diff % 86400000) / 3600000);
+      const m = Math.floor((diff % 3600000) / 60000);
+      const s = Math.floor((diff % 60000) / 1000);
+      document.getElementById('anniversary-countdown').textContent = `${d}天 ${h}时 ${m}分 ${s}秒`;
+    }
+
+    function bindMusic() {
+      const btn = document.getElementById('music-btn');
+      const bgm = document.getElementById('bgm');
+      let playing = false;
+      btn.addEventListener('click', async () => {
+        if (!playing) {
+          try {
+            await bgm.play();
+            playing = true;
+            btn.classList.add('bg-rosegold-100');
+          } catch (error) {
+            toast('浏览器阻止了自动播放，请再次点击');
+          }
+        } else {
+          bgm.pause();
+          playing = false;
+          btn.classList.remove('bg-rosegold-100');
+        }
+      });
+    }
+
+    async function getJson(url, options = {}) {
+      const response = await fetch(url, options);
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.detail || '请求失败');
+      return data;
+    }
+
+    async function loadTimeline() {
+      const list = document.getElementById('timeline-list');
+      const items = await getJson('/api/timeline');
+      if (!items.length) {
+        list.innerHTML = '<div class="soft-card p-6 bg-neutral-50 dark:bg-neutral-900">暂无时光机记录</div>';
+        return;
+      }
+      list.innerHTML = items.map(item => `
+        <article class="soft-card p-6 bg-neutral-50 dark:bg-neutral-900">
+          <p class="text-rosegold-500 text-xs tracking-[0.2em] uppercase mb-3">${escapeHtml(item.date)}</p>
+          <h3 class="text-2xl font-bold tracking-tight mb-3">${escapeHtml(item.title)}</h3>
+          ${item.image ? `<img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.title)}" class="rounded-xl mb-4 w-full max-h-[360px] object-cover cursor-zoom-in" onclick="openLightbox('${escapeHtml(item.image)}')">` : ''}
+          <p class="text-neutral-600 dark:text-neutral-300 leading-relaxed">${escapeHtml(item.description)}</p>
+        </article>
+      `).join('');
+    }
+
+    async function loadGallery() {
+      const grid = document.getElementById('gallery-grid');
+      const images = await getJson('/api/gallery');
+      if (!images.length) {
+        grid.innerHTML = '<div class="soft-card p-6 bg-neutral-50 dark:bg-neutral-900">暂无可展示照片</div>';
+        return;
+      }
+      grid.innerHTML = images.map((src, index) => `
+        <button class="gallery-item soft-card overflow-hidden bg-neutral-100 dark:bg-neutral-900 aspect-square" onclick="openLightbox('${escapeHtml(src)}')" aria-label="open photo ${index + 1}">
+          <img src="${escapeHtml(src)}" alt="photo-${index + 1}" class="w-full h-full object-cover">
+        </button>
+      `).join('');
+    }
+
+    async function loadWishlist() {
+      const list = document.getElementById('wishlist-list');
+      const items = await getJson('/api/wishlist');
+      list.innerHTML = items.map(item => `
+        <button class="soft-card p-5 bg-neutral-50 dark:bg-neutral-900 text-left" onclick="toggleWish(${item.id}, ${item.completed ? 'false' : 'true'})">
+          <div class="flex items-start gap-3">
+            <div class="w-6 h-6 rounded-full border ${item.completed ? 'bg-green-500 border-green-500' : 'border-neutral-300'} flex items-center justify-center text-white mt-1">
+              ${item.completed ? '✓' : ''}
+            </div>
+            <div>
+              <p class="font-semibold text-lg tracking-tight ${item.completed ? 'line-through text-neutral-500' : ''}">${escapeHtml(item.title)}</p>
+              <p class="text-sm text-neutral-500 mt-1">${item.completed && item.completed_at ? `完成于 ${escapeHtml(item.completed_at)}` : '点击即可勾选完成'}</p>
+            </div>
+          </div>
+        </button>
+      `).join('');
+    }
+
+    async function toggleWish(id, nextValue) {
+      try {
+        await getJson(`/api/wishlist/${id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ completed: nextValue })
+        });
+        await loadWishlist();
+      } catch (error) {
+        toast(error.message);
       }
     }
-  }
-}
-</script>
 
-<style>
-/* ── Base ── */
-*{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue",Arial,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#fff;color:#1d1d1f;overflow-x:hidden}
-::-webkit-scrollbar{width:5px}::-webkit-scrollbar-thumb{background:#ddd;border-radius:3px}
-
-/* ── Frosted Glass Navbar ── */
-.glass{background:rgba(255,255,255,.78);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px)}
-
-/* ── Hero ── */
-.hero-bg{background:radial-gradient(ellipse at 25% 55%,#fce4ec 0%,#fdf2f4 38%,#fff9fb 68%,#f8f8f8 100%)}
-
-/* ── Blobs ── */
-@keyframes f1{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-18px,-24px) scale(1.06)}}
-@keyframes f2{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(16px,-18px) scale(1.09)}}
-@keyframes f3{0%,100%{transform:translate(0,0)}50%{transform:translate(-12px,22px)}}
-.b1{animation:f1 9s ease-in-out infinite}.b2{animation:f2 11s ease-in-out infinite}.b3{animation:f3 7s ease-in-out infinite}
-
-/* ── Reveal ── */
-.reveal{opacity:0;transform:translateY(28px);transition:opacity .75s ease,transform .75s ease}
-.reveal.visible{opacity:1;transform:translateY(0)}
-
-/* ── Card ── */
-.card{background:#fff;border-radius:22px;border:1px solid #f0f0f0;box-shadow:0 2px 14px rgba(0,0,0,.045);transition:transform .28s ease,box-shadow .28s ease}
-.card:hover{transform:translateY(-4px);box-shadow:0 14px 36px rgba(183,110,121,.13)}
-
-/* ── Timeline ── */
-.tl-line{position:absolute;left:50%;top:0;bottom:0;width:1.5px;background:linear-gradient(to bottom,transparent,#e8c4c4 15%,#b76e79 50%,#e8c4c4 85%,transparent);transform:translateX(-50%)}
-.tl-dot{position:absolute;left:50%;width:13px;height:13px;border-radius:50%;background:#fff;border:2.5px solid #b76e79;transform:translateX(-50%);z-index:10;box-shadow:0 0 0 5px rgba(183,110,121,.1);transition:box-shadow .25s ease}
-.tl-dot:hover{box-shadow:0 0 0 9px rgba(183,110,121,.15)}
-
-/* ── Gallery ── */
-.gal-item{position:relative;overflow:hidden;border-radius:20px;cursor:pointer;display:block}
-.gal-item img{transition:transform .45s ease;width:100%;height:100%;object-fit:cover;display:block}
-.gal-item:hover img{transform:scale(1.07)}
-.gal-ov{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.48),transparent);opacity:0;transition:opacity .3s;display:flex;align-items:flex-end;padding:14px}
-.gal-item:hover .gal-ov{opacity:1}
-
-/* ── Lightbox ── */
-.lb{position:fixed;inset:0;z-index:1100;background:rgba(0,0,0,.92);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);display:flex;justify-content:center;align-items:center;visibility:hidden;opacity:0;transition:opacity .3s ease,visibility .3s ease;pointer-events:none}
-.lb.open{visibility:visible;opacity:1;pointer-events:all}
-.lb img{max-width:90vw;max-height:88vh;border-radius:14px;object-fit:contain;transform:scale(.92);transition:transform .32s ease}
-.lb.open img{transform:scale(1)}
-
-/* ── Overlays (modal) ── */
-.ov{position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.46);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:flex;justify-content:center;align-items:center;visibility:hidden;opacity:0;transition:opacity .3s ease,visibility .3s ease;pointer-events:none;padding:16px}
-.ov.open{visibility:visible;opacity:1;pointer-events:all}
-
-/* ── Gradient Text ── */
-.grad{background:linear-gradient(135deg,#8b4d57,#b76e79,#d4a0aa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-
-/* ── Countdown ── */
-.cd-n{font-size:clamp(2rem,4.5vw,3rem);font-weight:700;letter-spacing:-.04em;line-height:1;color:#8b4d57}
-
-/* ── Section Tag ── */
-.stag{font-size:11px;font-weight:600;letter-spacing:.16em;color:#b76e79;text-transform:uppercase}
-.sline{width:48px;height:2.5px;background:linear-gradient(90deg,#b76e79,#e8c4c4);border-radius:2px;margin:14px auto}
-
-/* ── Input ── */
-.inp{width:100%;padding:12px 18px;border-radius:14px;border:1px solid #e8e8e8;background:#fff;font-size:14px;outline:none;transition:border-color .2s,box-shadow .2s;font-family:inherit}
-.inp:focus{border-color:#b76e79;box-shadow:0 0 0 3px rgba(183,110,121,.14)}
-
-/* ── Wish Card ── */
-.wcard{display:flex;align-items:flex-start;gap:14px;padding:18px 20px;background:#fff;border-radius:20px;border:1px solid #f0f0f0;box-shadow:0 2px 10px rgba(0,0,0,.04);cursor:pointer;transition:transform .25s,box-shadow .25s,border-color .25s}
-.wcard:hover{transform:translateY(-3px);box-shadow:0 10px 30px rgba(183,110,121,.13);border-color:#e8c4c4}
-
-/* ── Message Card ── */
-.mcard{padding:20px 22px;background:#fafafa;border-radius:20px;border:1px solid #f0f0f0;position:relative;overflow:hidden}
-.mcard::before{content:'';position:absolute;left:0;top:10px;bottom:10px;width:3px;background:linear-gradient(to bottom,#b76e79,#e8c4c4);border-radius:0 3px 3px 0}
-
-/* ── Heart Particles ── */
-@keyframes hup{0%{transform:translateY(0) scale(1);opacity:1}100%{transform:translateY(-130px) scale(.2);opacity:0}}
-.hp{position:fixed;pointer-events:none;font-size:22px;z-index:9999;animation:hup 1.9s ease-out forwards}
-
-/* ── Toast ── */
-#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1d1d1f;color:#fff;font-size:14px;padding:11px 22px;border-radius:100px;z-index:9999;opacity:0;transition:opacity .35s ease;pointer-events:none;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.18)}
-#toast.show{opacity:1}
-
-/* ── Music Pulse ── */
-@keyframes mr{0%{transform:scale(.8);opacity:.9}100%{transform:scale(1.7);opacity:0}}
-#mbtn.playing::after{content:'';position:absolute;inset:0;border-radius:50%;background:rgba(183,110,121,.28);animation:mr 1.5s ease-out infinite}
-
-/* ── Admin Tab ── */
-.atab{padding:11px 0;margin-right:24px;font-size:13.5px;font-weight:500;color:#888;cursor:pointer;border-bottom:2px solid transparent;transition:color .2s,border-color .2s;background:none;border-top:none;border-left:none;border-right:none}
-.atab.on{color:#b76e79;border-bottom-color:#b76e79}
-.atp{display:none}.atp.on{display:block}
-</style>
-</head>
-
-<body>
-
-<!-- BGM -->
-<audio id="bgm" loop preload="none"><source src="/static/bgm.mp3" type="audio/mpeg"></audio>
-
-<!-- ═══════════════ NAVBAR ═══════════════ -->
-<nav class="glass fixed top-0 inset-x-0 z-50 h-[60px] border-b border-white/20">
-  <div class="max-w-6xl mx-auto h-full px-5 flex items-center justify-between">
-    <!-- Logo -->
-    <div class="flex items-center gap-1.5">
-      <span class="text-[19px]">❤️</span>
-      <span class="font-semibold text-[15px] tracking-tight">李欣 <span class="text-[#b76e79]">&amp;</span> 王雅婷</span>
-    </div>
-    <!-- Links -->
-    <div class="hidden md:flex gap-7 text-[13px] font-medium text-[#1d1d1f]/55">
-      <a href="#timeline" class="hover:text-[#b76e79] transition-colors">时光机</a>
-      <a href="#gallery" class="hover:text-[#b76e79] transition-colors">相册</a>
-      <a href="#wishlist" class="hover:text-[#b76e79] transition-colors">心愿单</a>
-      <a href="#messages" class="hover:text-[#b76e79] transition-colors">留言板</a>
-    </div>
-    <!-- Controls -->
-    <div class="flex items-center gap-2">
-      <button id="mbtn" onclick="toggleMusic()" title="背景音乐"
-        class="relative w-9 h-9 rounded-full bg-[#fdf2f4] hover:bg-[#e8c4c4]/50 flex items-center justify-center text-[#b76e79] transition-colors">
-        <i data-lucide="music" class="w-4 h-4"></i>
-      </button>
-      <button onclick="openAdminLogin()" title="管理后台"
-        class="w-9 h-9 rounded-full bg-[#fdf2f4] hover:bg-[#e8c4c4]/50 flex items-center justify-center text-[#6e6e73] hover:text-[#b76e79] transition-colors">
-        <i data-lucide="settings-2" class="w-4 h-4"></i>
-      </button>
-    </div>
-  </div>
-</nav>
-
-<!-- ═══════════════ HERO ═══════════════ -->
-<section class="hero-bg min-h-screen flex items-center justify-center relative overflow-hidden pt-16">
-  <div class="b1 absolute top-[14%] left-[8%] w-72 h-72 rounded-full bg-[#fce4ec]/55 blur-3xl pointer-events-none"></div>
-  <div class="b2 absolute bottom-[14%] right-[7%] w-80 h-80 rounded-full bg-[#f8bbd0]/45 blur-3xl pointer-events-none"></div>
-  <div class="b3 absolute top-[52%] left-[48%] w-56 h-56 rounded-full bg-[#fce4ec]/35 blur-2xl pointer-events-none"></div>
-
-  <div class="relative z-10 text-center px-6 max-w-4xl mx-auto">
-    <!-- Kicker -->
-    <div class="inline-flex items-center gap-2 mb-8 px-5 py-2 rounded-full bg-white/60 border border-[#e8c4c4] backdrop-blur-sm text-[13px] text-[#8b4d57] font-medium">
-      <span class="w-2 h-2 rounded-full bg-[#b76e79] animate-pulse inline-block"></span>
-      我们的故事正在书写中...
-    </div>
-    <!-- Title -->
-    <h1 class="font-bold tracking-tight text-[#1d1d1f] mb-2" style="font-size:clamp(3rem,8vw,5.5rem);line-height:1.05">在一起</h1>
-    <div class="grad font-bold mb-8" style="font-size:clamp(3.8rem,11vw,7.5rem);line-height:1;letter-spacing:-.03em">
-      第&nbsp;<span id="days-count">—</span>&nbsp;天
-    </div>
-    <p class="text-[#6e6e73] text-[17px] mb-12">2022 · 12 · 25 &nbsp;→&nbsp; 李欣 &amp; 王雅婷</p>
-
-    <!-- Countdown -->
-    <div class="inline-block bg-white/75 backdrop-blur-md border border-white/80 rounded-3xl px-8 md:px-12 py-7 shadow-sm mb-12">
-      <p class="stag mb-5">距离下一个周年纪念</p>
-      <div class="flex items-center gap-3 md:gap-5">
-        <div class="text-center min-w-[52px]"><div class="cd-n" id="cd-d">--</div><div class="text-[11px] text-[#6e6e73] mt-2 tracking-widest">天</div></div>
-        <div class="text-[#d4a0aa] text-2xl font-thin pb-5">:</div>
-        <div class="text-center min-w-[52px]"><div class="cd-n" id="cd-h">--</div><div class="text-[11px] text-[#6e6e73] mt-2 tracking-widest">时</div></div>
-        <div class="text-[#d4a0aa] text-2xl font-thin pb-5">:</div>
-        <div class="text-center min-w-[52px]"><div class="cd-n" id="cd-m">--</div><div class="text-[11px] text-[#6e6e73] mt-2 tracking-widest">分</div></div>
-        <div class="text-[#d4a0aa] text-2xl font-thin pb-5">:</div>
-        <div class="text-center min-w-[52px]"><div class="cd-n" id="cd-s">--</div><div class="text-[11px] text-[#6e6e73] mt-2 tracking-widest">秒</div></div>
-      </div>
-    </div>
-
-    <a href="#timeline" class="flex flex-col items-center gap-1.5 text-[#6e6e73]/65 text-[13px] hover:text-[#b76e79] transition-colors">
-      <span>向下探索</span>
-      <i data-lucide="chevron-down" class="w-5 h-5 animate-bounce"></i>
-    </a>
-  </div>
-</section>
-
-<!-- ═══════════════ TIMELINE ═══════════════ -->
-<section id="timeline" class="py-24 bg-[#fbfbfd]">
-  <div class="max-w-5xl mx-auto px-6">
-    <div class="text-center mb-16 reveal">
-      <p class="stag">Our Story</p>
-      <h2 class="text-[42px] md:text-[54px] font-bold tracking-tight text-[#1d1d1f] mt-2">恋爱时光机</h2>
-      <div class="sline"></div>
-      <p class="text-[#6e6e73] mt-3 text-[15px]">每一个时刻，都值得被铭记</p>
-    </div>
-    <div id="tlc" class="relative">
-      <div class="tl-line hidden md:block"></div>
-      <div class="flex justify-center py-16 text-[#6e6e73] gap-2 items-center">
-        <i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i><span>加载中...</span>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ═══════════════ GALLERY ═══════════════ -->
-<section id="gallery" class="py-24 bg-white">
-  <div class="max-w-6xl mx-auto px-6">
-    <div class="text-center mb-16 reveal">
-      <p class="stag">Photo Gallery</p>
-      <h2 class="text-[42px] md:text-[54px] font-bold tracking-tight text-[#1d1d1f] mt-2">我们的相册</h2>
-      <div class="sline"></div>
-      <p class="text-[#6e6e73] mt-3 text-[15px]">每一张照片，都是最美的收藏</p>
-    </div>
-    <div id="gal-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
-    <div id="gal-empty" class="hidden text-center py-20 text-[#6e6e73]">
-      <i data-lucide="image" class="w-14 h-14 mx-auto mb-4 text-[#e8c4c4]"></i>
-      <p class="text-[15px]">照片正在整理中，敬请期待 ✨</p>
-      <p class="text-[13px] mt-2 text-[#6e6e73]/60">可在管理后台上传照片并填写到时光机节点</p>
-    </div>
-  </div>
-</section>
-
-<!-- ═══════════════ WISHLIST ═══════════════ -->
-<section id="wishlist" class="py-24 bg-[#fbfbfd]">
-  <div class="max-w-3xl mx-auto px-6">
-    <div class="text-center mb-16 reveal">
-      <p class="stag">Dream List</p>
-      <h2 class="text-[42px] md:text-[54px] font-bold tracking-tight text-[#1d1d1f] mt-2">恋爱心愿单</h2>
-      <div class="sline"></div>
-      <p class="text-[#6e6e73] mt-3 text-[15px]">我们想一起完成的所有美好事情</p>
-    </div>
-    <div id="wlc" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
-  </div>
-</section>
-
-<!-- ═══════════════ MESSAGES ═══════════════ -->
-<section id="messages" class="py-24 bg-white">
-  <div class="max-w-2xl mx-auto px-6">
-    <div class="text-center mb-16 reveal">
-      <p class="stag">Message Board</p>
-      <h2 class="text-[42px] md:text-[54px] font-bold tracking-tight text-[#1d1d1f] mt-2">留言板</h2>
-      <div class="sline"></div>
-      <p class="text-[#6e6e73] mt-3 text-[15px]">给我们留下你的祝福 💌</p>
-    </div>
-    <!-- Form -->
-    <div class="card p-7 mb-8 reveal">
-      <div class="space-y-3.5">
-        <input id="mn" type="text" placeholder="你的昵称" maxlength="20" class="inp">
-        <textarea id="mc" rows="4" placeholder="写下你想说的话..." maxlength="500" class="inp resize-none"></textarea>
-        <button onclick="submitMsg()"
-          class="w-full py-3.5 rounded-[14px] bg-[#b76e79] hover:bg-[#8b4d57] active:scale-[.98] text-white font-semibold text-[15px] transition-all duration-200 hover:shadow-lg hover:shadow-[#b76e79]/20">
-          发送祝福 ✨
-        </button>
-      </div>
-    </div>
-    <!-- List -->
-    <div id="msgc" class="space-y-4"></div>
-  </div>
-</section>
-
-<!-- ═══════════════ FOOTER ═══════════════ -->
-<footer class="py-16 bg-[#fbfbfd] border-t border-neutral-100 text-center">
-  <div class="text-[34px] mb-3">❤️</div>
-  <h3 class="text-[23px] font-bold tracking-tight text-[#1d1d1f] mb-1.5">李欣 &amp; 王雅婷</h3>
-  <p class="text-[#6e6e73] text-[14px] mb-6">在一起的每一天，都是最好的礼物</p>
-  <p class="text-[#6e6e73]/40 text-[12px]">2022 · 12 · 25 — 始于圣诞节，永不落幕 🎄</p>
-</footer>
-
-<!-- ═══════════════ LIGHTBOX ═══════════════ -->
-<div id="lb" class="lb" onclick="if(event.target.id==='lb')closeLb()">
-  <button onclick="closeLb()"
-    class="absolute top-5 right-5 w-10 h-10 flex items-center justify-center rounded-full text-white/70 hover:text-white hover:bg-white/10 transition-colors z-10">
-    <i data-lucide="x" class="w-7 h-7"></i>
-  </button>
-  <img id="lb-img" src="" alt="">
-</div>
-
-<!-- ═══════════════ ADMIN LOGIN MODAL ═══════════════ -->
-<div id="login-ov" class="ov" onclick="if(event.target.id==='login-ov')closeOv('login-ov')">
-  <div class="bg-white rounded-3xl p-8 w-full max-w-sm shadow-2xl" onclick="event.stopPropagation()">
-    <div class="text-center mb-6">
-      <div class="w-14 h-14 rounded-2xl bg-[#fdf2f4] flex items-center justify-center mx-auto mb-4">
-        <i data-lucide="lock" class="w-7 h-7 text-[#b76e79]"></i>
-      </div>
-      <h3 class="text-[20px] font-bold text-[#1d1d1f]">管理员登录</h3>
-      <p class="text-[#6e6e73] text-[13.5px] mt-1">请输入管理口令</p>
-    </div>
-    <input id="apwd" type="password" placeholder="口令" class="inp mb-1 text-center tracking-[.25em]"
-      onkeydown="if(event.key==='Enter')doLogin()">
-    <p id="lerr" class="text-[#e84857] text-[13px] text-center min-h-[20px] mb-3"></p>
-    <button onclick="doLogin()"
-      class="w-full py-3.5 rounded-[14px] bg-[#b76e79] hover:bg-[#8b4d57] text-white font-semibold transition-all">登录</button>
-  </div>
-</div>
-
-<!-- ═══════════════ ADMIN PANEL MODAL ═══════════════ -->
-<div id="panel-ov" class="ov" onclick="if(event.target.id==='panel-ov')closeOv('panel-ov')">
-  <div class="bg-white rounded-3xl w-full max-w-lg shadow-2xl flex flex-col" style="max-height:88vh" onclick="event.stopPropagation()">
-    <!-- Header -->
-    <div class="flex items-center justify-between px-7 pt-6 pb-4 border-b border-neutral-100 flex-shrink-0">
-      <h3 class="text-[17px] font-bold text-[#1d1d1f]">🛠️ 秘密管理后台</h3>
-      <button onclick="closeOv('panel-ov')" class="text-[#6e6e73] hover:text-[#1d1d1f] transition-colors">
-        <i data-lucide="x" class="w-5 h-5"></i>
-      </button>
-    </div>
-    <!-- Tabs -->
-    <div class="flex px-7 border-b border-neutral-100 flex-shrink-0">
-      <button class="atab on" onclick="switchTab('t-tl',this)">📅 时光机</button>
-      <button class="atab" onclick="switchTab('t-up',this)">📸 上传照片</button>
-      <button class="atab" onclick="switchTab('t-msg',this)">💬 留言管理</button>
-    </div>
-    <!-- Scrollable Content -->
-    <div class="flex-1 overflow-y-auto p-7">
-
-      <!-- Tab: Timeline -->
-      <div id="t-tl" class="atp on space-y-3">
-        <p class="text-[13px] text-[#6e6e73] mb-2">追加新的时光机节点，自动按日期排序 📅</p>
-        <input id="a-date" type="date" class="inp">
-        <input id="a-title" type="text" placeholder="节点标题（如：第一次旅行 ✈️）" class="inp">
-        <textarea id="a-desc" rows="3" placeholder="描述这个美好的时刻..." class="inp resize-none"></textarea>
-        <input id="a-img" type="text" placeholder="图片 URL 或上传后路径（可选）" class="inp">
-        <button onclick="addTl()"
-          class="w-full py-3 rounded-[14px] bg-[#b76e79] hover:bg-[#8b4d57] text-white font-semibold text-[14px] transition-all">添加节点</button>
-      </div>
-
-      <!-- Tab: Upload -->
-      <div id="t-up" class="atp space-y-3">
-        <p class="text-[13px] text-[#6e6e73] mb-2">上传照片到服务器，支持 JPG / PNG / WebP 📸</p>
-        <div onclick="document.getElementById('a-file').click()"
-          class="border-2 border-dashed border-neutral-200 hover:border-[#b76e79] rounded-2xl p-10 text-center cursor-pointer transition-colors">
-          <i data-lucide="upload-cloud" class="w-10 h-10 mx-auto text-[#d4a0aa] mb-3"></i>
-          <p class="text-[14px] text-[#6e6e73]">点击选择照片</p>
-          <p class="text-[12px] text-[#6e6e73]/55 mt-1">JPG · PNG · WebP · GIF</p>
-        </div>
-        <input id="a-file" type="file" accept="image/*" class="hidden" onchange="prevFile(event)">
-        <div id="prev-wrap" class="hidden rounded-2xl overflow-hidden" style="max-height:180px">
-          <img id="prev-img" src="" class="w-full h-full object-cover">
-        </div>
-        <button onclick="uploadPhoto()"
-          class="w-full py-3 rounded-[14px] bg-[#b76e79] hover:bg-[#8b4d57] text-white font-semibold text-[14px] transition-all">上传照片</button>
-        <div id="up-res" class="text-[12.5px] text-[#6e6e73] break-all"></div>
-      </div>
-
-      <!-- Tab: Messages -->
-      <div id="t-msg" class="atp">
-        <p class="text-[13px] text-[#6e6e73] mb-4">管理留言板，可删除不当内容 🗑️</p>
-        <div id="adm-msgs" class="space-y-3"></div>
-      </div>
-
-    </div>
-  </div>
-</div>
-
-<!-- Toast -->
-<div id="toast"></div>
-
-<script>
-lucide.createIcons();
-
-const ANN = new Date('2022-12-25T00:00:00');
-let admPwd = '', bgmOn = false;
-
-/* ── Countdown ── */
-function tick() {
-  const now = new Date();
-  document.getElementById('days-count').textContent = Math.floor((now - ANN) / 864e5).toLocaleString();
-  let next = new Date(ANN); next.setFullYear(now.getFullYear());
-  if (next <= now) next.setFullYear(now.getFullYear() + 1);
-  const ms = next - now;
-  const p = n => String(n).padStart(2, '0');
-  document.getElementById('cd-d').textContent = p(Math.floor(ms / 864e5));
-  document.getElementById('cd-h').textContent = p(Math.floor(ms % 864e5 / 36e5));
-  document.getElementById('cd-m').textContent = p(Math.floor(ms % 36e5 / 6e4));
-  document.getElementById('cd-s').textContent = p(Math.floor(ms % 6e4 / 1e3));
-}
-tick(); setInterval(tick, 1000);
-
-/* ── Reveal Observer ── */
-const ro = new IntersectionObserver(
-  es => es.forEach(e => e.isIntersecting && e.target.classList.add('visible')),
-  { threshold: 0.1 }
-);
-document.querySelectorAll('.reveal').forEach(el => ro.observe(el));
-
-/* ── Music ── */
-function toggleMusic() {
-  const a = document.getElementById('bgm'), b = document.getElementById('mbtn');
-  bgmOn = !bgmOn;
-  bgmOn ? a.play().catch(() => {}) : a.pause();
-  b.classList.toggle('playing', bgmOn);
-}
-
-/* ── Lightbox ── */
-function openLb(src) {
-  document.getElementById('lb-img').src = src;
-  document.getElementById('lb').classList.add('open');
-}
-function closeLb() { document.getElementById('lb').classList.remove('open'); }
-
-/* ── Overlay Helpers ── */
-function openOv(id) { document.getElementById(id).classList.add('open'); }
-function closeOv(id) { document.getElementById(id).classList.remove('open'); }
-
-document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') { closeLb(); closeOv('login-ov'); closeOv('panel-ov'); }
-});
-
-/* ── Timeline ── */
-async function loadTl() {
-  try {
-    const r = await fetch('/api/timeline');
-    const items = await r.json();
-    renderTl(items); renderGal(items);
-  } catch {
-    document.getElementById('tlc').innerHTML = '<p class="text-center py-12 text-[#6e6e73]">暂无时光记录</p>';
-  }
-}
-
-function renderTl(items) {
-  const c = document.getElementById('tlc');
-  if (!items?.length) {
-    c.innerHTML = '<p class="text-center py-14 text-[#6e6e73]">暂无时光记录，快去管理后台添加第一个节点吧 ✨</p>';
-    return;
-  }
-  let html = '<div class="tl-line hidden md:block"></div>';
-  items.forEach((it, i) => {
-    const left = i % 2 === 0;
-    const imgH = it.image
-      ? `<div class="rounded-[14px] overflow-hidden aspect-video mb-4 cursor-pointer" onclick="openLb('${it.image}')"><img src="${it.image}" alt="" class="w-full h-full object-cover" loading="lazy" onerror="this.closest('div').style.display='none'"></div>`
-      : '';
-    const card = `<div class="card p-6 reveal">
-      <div class="flex items-center gap-1.5 text-[11px] font-semibold text-[#b76e79] uppercase tracking-wider mb-2">
-        <i data-lucide="calendar-heart" class="w-3.5 h-3.5"></i> ${it.date || ''}
-      </div>
-      <h3 class="text-[18px] font-bold text-[#1d1d1f] mb-3">${it.title || ''}</h3>
-      ${imgH}
-      <p class="text-[13.5px] text-[#6e6e73] leading-relaxed">${it.description || ''}</p>
-    </div>`;
-    html += `<div class="relative md:grid md:grid-cols-2 md:gap-10 mb-8 items-start">
-      <div class="tl-dot hidden md:block" style="top:30px"></div>
-      ${left ? `<div>${card}</div><div></div>` : `<div></div><div>${card}</div>`}
-    </div>`;
-  });
-  c.innerHTML = html;
-  c.querySelectorAll('.reveal').forEach(el => ro.observe(el));
-  lucide.createIcons();
-}
-
-/* ── Gallery ── */
-function renderGal(items) {
-  const grid = document.getElementById('gal-grid');
-  const empty = document.getElementById('gal-empty');
-  const photos = (items || []).filter(it => it.image && it.image.trim());
-  if (!photos.length) { grid.classList.add('hidden'); empty.classList.remove('hidden'); return; }
-  grid.innerHTML = photos.map(it => `
-    <div class="gal-item aspect-square reveal" onclick="openLb('${it.image}')">
-      <img src="${it.image}" alt="${it.title || ''}" loading="lazy"
-        onerror="this.closest('.gal-item').style.display='none'">
-      <div class="gal-ov"><p class="text-white text-[13px] font-medium">${it.title || ''}</p></div>
-    </div>`).join('');
-  grid.querySelectorAll('.reveal').forEach(el => ro.observe(el));
-}
-
-/* ── Wishlist ── */
-const WE = ['🌊','🌌','🎵','🐱','🌅','🎡','🗺️','🌸','🎋','🎠'];
-async function loadWl() {
-  try { renderWl(await (await fetch('/api/wishlist')).json()); }
-  catch { document.getElementById('wlc').innerHTML = '<div class="col-span-2 text-center py-8 text-[#6e6e73]">加载失败</div>'; }
-}
-function renderWl(items) {
-  document.getElementById('wlc').innerHTML = (items || []).map((it, i) => `
-    <div class="wcard ${it.completed ? 'opacity-70' : ''}" onclick="toggleWish(${it.id})">
-      <div class="w-12 h-12 rounded-xl flex-shrink-0 flex items-center justify-center text-[22px] ${it.completed ? 'bg-green-50' : 'bg-[#fdf2f4]'}">
-        ${it.completed ? '✅' : WE[i % WE.length]}
-      </div>
-      <div class="flex-1 min-w-0">
-        <div class="flex items-center justify-between gap-3">
-          <p class="font-semibold text-[14.5px] ${it.completed ? 'line-through text-[#6e6e73]' : 'text-[#1d1d1f]'}">${it.title}</p>
-          <div class="w-5 h-5 flex-shrink-0 rounded-full border-2 flex items-center justify-center ${it.completed ? 'bg-green-400 border-green-400' : 'border-[#d1d1d6]'}">
-            ${it.completed ? '<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5" width="11" height="11"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
+    function renderMessageCard(item, adminMode = false) {
+      const when = (item.updated_at || item.created_at || '').slice(0, 16);
+      return `
+        <article class="soft-card p-5 bg-neutral-50 dark:bg-neutral-900">
+          <div class="flex justify-between gap-3">
+            <div class="min-w-0">
+              <p class="font-semibold">${escapeHtml(item.nickname)}</p>
+              <p class="text-sm text-neutral-500 mt-1 break-words">${escapeHtml(item.content)}</p>
+              <p class="text-xs text-neutral-400 mt-2">${escapeHtml(when)}</p>
+            </div>
+            ${adminMode ? `<button onclick="adminDeleteMessage(${item.id})" class="w-9 h-9 rounded-xl bg-red-50 text-red-500 flex items-center justify-center hover:-translate-y-1 transition-all duration-300"><i data-lucide="trash-2" class="w-4 h-4"></i></button>` : ''}
           </div>
-        </div>
-        ${it.completed && it.completed_at ? `<p class="text-[11.5px] text-[#6e6e73] mt-1">完成于 ${it.completed_at} ✨</p>` : ''}
-      </div>
-    </div>`).join('');
-}
-async function toggleWish(id) {
-  if (!admPwd) { openAdminLogin(); toast('请先登录管理员账号 🔐'); return; }
-  try {
-    const r = await fetch(`/api/wishlist/toggle/${id}?password=${encodeURIComponent(admPwd)}`, { method: 'POST' });
-    if (r.ok) { loadWl(); }
-    else if (r.status === 401) { toast('认证已过期，请重新登录'); admPwd = ''; openAdminLogin(); }
-    else { toast('操作失败'); }
-  } catch { toast('网络错误'); }
-}
-
-/* ── Messages ── */
-const AVC = ['#b76e79','#8b4d57','#c89ba8','#d4a0aa','#a0727f','#cd9aa6'];
-async function loadMsgs() {
-  try { renderMsgs(await (await fetch('/api/messages')).json()); }
-  catch { document.getElementById('msgc').innerHTML = '<p class="text-center py-8 text-[#6e6e73]">暂无留言</p>'; }
-}
-function renderMsgs(msgs) {
-  const c = document.getElementById('msgc');
-  if (!msgs?.length) {
-    c.innerHTML = '<div class="text-center py-14 text-[#6e6e73]"><p class="text-5xl mb-3">💌</p><p>还没有留言，来第一个留下祝福吧！</p></div>';
-    return;
-  }
-  c.innerHTML = msgs.map((m, i) => `
-    <div class="mcard reveal">
-      <div class="flex gap-3 items-start">
-        <div class="w-9 h-9 rounded-xl flex-shrink-0 flex items-center justify-center text-white font-bold text-[14px]" style="background:${AVC[i % AVC.length]}">${(m.nickname || '?').slice(0, 1)}</div>
-        <div class="flex-1 min-w-0">
-          <div class="flex justify-between items-center mb-1.5">
-            <span class="font-semibold text-[14.5px]">${m.nickname}</span>
-            <span class="text-[11.5px] text-[#6e6e73]">${(m.created_at || '').slice(0, 16)}</span>
-          </div>
-          <p class="text-[13.5px] text-[#1d1d1f]/75 leading-relaxed">${m.content}</p>
-        </div>
-      </div>
-    </div>`).join('');
-  c.querySelectorAll('.reveal').forEach(el => ro.observe(el));
-}
-async function submitMsg() {
-  const n = document.getElementById('mn').value.trim();
-  const ct = document.getElementById('mc').value.trim();
-  if (!n || !ct) { toast('昵称和内容都不能为空哦 💕'); return; }
-  try {
-    const r = await fetch('/api/messages', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ nickname: n, content: ct })
-    });
-    if (r.ok) {
-      document.getElementById('mn').value = '';
-      document.getElementById('mc').value = '';
-      toast('留言成功！谢谢你的祝福 💕');
-      celebrate(); loadMsgs();
-    } else { toast('留言失败，请重试'); }
-  } catch { toast('网络错误'); }
-}
-
-/* ── Celebrate ── */
-function celebrate() {
-  confetti({ particleCount: 130, spread: 82, origin: { y: .72 },
-    colors: ['#b76e79','#e8c4c4','#f8bbd0','#fce4ec','#ff8fa3','#ffffff'] });
-  setTimeout(() => confetti({ particleCount: 60, spread: 50, origin: { y: .72 }, angle: 60 }), 300);
-  setTimeout(() => confetti({ particleCount: 60, spread: 50, origin: { y: .72 }, angle: 120 }), 400);
-  const emos = ['❤️','💕','💗','💖','✨','🌸','💝','🎉'];
-  for (let i = 0; i < 12; i++) setTimeout(() => {
-    const h = document.createElement('div');
-    h.className = 'hp';
-    h.textContent = emos[Math.floor(Math.random() * emos.length)];
-    h.style.cssText = `left:${8 + Math.random() * 84}vw;top:72vh`;
-    document.body.appendChild(h);
-    setTimeout(() => h.remove(), 2100);
-  }, i * 110);
-}
-
-/* ── Admin Login ── */
-function openAdminLogin() {
-  document.getElementById('lerr').textContent = '';
-  openOv('login-ov');
-  setTimeout(() => document.getElementById('apwd').focus(), 300);
-}
-async function doLogin() {
-  const pwd = document.getElementById('apwd').value;
-  if (!pwd) return;
-  try {
-    const r = await fetch('/api/admin/login', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ password: pwd })
-    });
-    if (r.ok) {
-      admPwd = pwd;
-      document.getElementById('apwd').value = '';
-      closeOv('login-ov');
-      openOv('panel-ov');
-      loadAdmMsgs();
-      toast('登录成功 🎉');
-    } else {
-      document.getElementById('lerr').textContent = '口令错误，请重试 🔐';
-      document.getElementById('apwd').value = '';
-      document.getElementById('apwd').focus();
+        </article>
+      `;
     }
-  } catch { toast('网络错误'); }
-}
 
-/* ── Admin Tabs ── */
-function switchTab(tid, btn) {
-  document.querySelectorAll('.atp').forEach(c => c.classList.remove('on'));
-  document.querySelectorAll('.atab').forEach(b => b.classList.remove('on'));
-  document.getElementById(tid).classList.add('on');
-  btn.classList.add('on');
-  if (tid === 't-msg') loadAdmMsgs();
-}
+    async function loadMessages() {
+      const container = document.getElementById('message-list');
+      const items = await getJson('/api/messages');
+      container.innerHTML = items.length ? items.map(item => renderMessageCard(item)).join('') : '<div class="soft-card p-6 bg-neutral-50 dark:bg-neutral-900">还没有留言，来写第一条吧。</div>';
+      lucide.createIcons();
+    }
 
-/* ── Admin: Add Timeline ── */
-async function addTl() {
-  const d = document.getElementById('a-date').value;
-  const t = document.getElementById('a-title').value.trim();
-  const desc = document.getElementById('a-desc').value.trim();
-  const img = document.getElementById('a-img').value.trim();
-  if (!d || !t || !desc) { toast('请填写日期、标题和描述'); return; }
-  try {
-    const r = await fetch('/api/timeline', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ password: admPwd, date: d, title: t, description: desc, image: img })
+    function launchMessageCelebration() {
+      confetti({
+        particleCount: 120,
+        spread: 85,
+        origin: { y: 0.72 },
+        colors: ['#fdf4f7', '#d6a0ad', '#b56f7f', '#ffffff']
+      });
+      const icons = ['❤️', '💗', '💕', '💖', '✨'];
+      for (let i = 0; i < 14; i += 1) {
+        setTimeout(() => {
+          const node = document.createElement('div');
+          node.className = 'heart-particle';
+          node.textContent = icons[Math.floor(Math.random() * icons.length)];
+          node.style.left = `${10 + Math.random() * 80}vw`;
+          node.style.top = '75vh';
+          document.body.appendChild(node);
+          setTimeout(() => node.remove(), 2300);
+        }, i * 100);
+      }
+    }
+
+    async function submitMessage() {
+      const nickname = document.getElementById('message-nickname').value.trim();
+      const content = document.getElementById('message-content').value.trim();
+      if (!nickname || !content) {
+        toast('昵称和内容不能为空');
+        return;
+      }
+      try {
+        await getJson('/api/messages', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ nickname, content })
+        });
+        document.getElementById('message-nickname').value = '';
+        document.getElementById('message-content').value = '';
+        launchMessageCelebration();
+        toast('留言成功，感谢祝福');
+        await loadMessages();
+      } catch (error) {
+        toast(error.message);
+      }
+    }
+
+    function setAdminUI(loggedIn) {
+      document.getElementById('admin-login-box').classList.toggle('hidden', loggedIn);
+      document.getElementById('admin-panel').classList.toggle('hidden', !loggedIn);
+    }
+
+    async function adminLogin() {
+      const passwordInput = document.getElementById('admin-password');
+      const errorEl = document.getElementById('admin-login-error');
+      const password = passwordInput.value;
+      if (!password) {
+        errorEl.textContent = '请输入口令';
+        return;
+      }
+      try {
+        const data = await getJson('/api/admin/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password })
+        });
+        adminToken = data.token;
+        errorEl.textContent = '';
+        passwordInput.value = '';
+        setAdminUI(true);
+        await Promise.all([loadTimeline(), loadGallery(), loadWishlist(), loadMessages(), loadAdminMessages()]);
+        toast('后台登录成功');
+      } catch (error) {
+        errorEl.textContent = error.message;
+      }
+    }
+
+    async function uploadAndFillTimelineImage() {
+      const input = document.getElementById('upload-file');
+      const mode = document.getElementById('upload-mode').value;
+      if (!adminToken) return toast('请先登录后台');
+      if (!input.files || !input.files[0]) return toast('请先选择图片');
+
+      const form = new FormData();
+      form.append('file', input.files[0]);
+      form.append('mode', mode);
+      try {
+        const response = await fetch('/api/admin/upload-photo', {
+          method: 'POST',
+          headers: { 'X-Admin-Token': adminToken },
+          body: form
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.detail || '上传失败');
+        document.getElementById('timeline-image').value = data.url;
+        input.value = '';
+        toast(mode === 'base64' ? '已转为 Base64 并回填' : '上传成功并回填图片地址');
+      } catch (error) {
+        toast(error.message);
+      }
+    }
+
+    async function addTimelineItem() {
+      if (!adminToken) return toast('请先登录后台');
+      const date = document.getElementById('timeline-date').value;
+      const title = document.getElementById('timeline-title').value.trim();
+      const description = document.getElementById('timeline-description').value.trim();
+      const image = document.getElementById('timeline-image').value.trim();
+      if (!date || !title || !description) return toast('请填写日期、标题、描述');
+
+      try {
+        await getJson('/api/admin/timeline', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Admin-Token': adminToken
+          },
+          body: JSON.stringify({ date, title, description, image })
+        });
+        document.getElementById('timeline-date').value = '';
+        document.getElementById('timeline-title').value = '';
+        document.getElementById('timeline-description').value = '';
+        document.getElementById('timeline-image').value = '';
+        await Promise.all([loadTimeline(), loadGallery()]);
+        toast('时光机节点已添加');
+      } catch (error) {
+        toast(error.message);
+      }
+    }
+
+    async function addWish() {
+      if (!adminToken) return toast('请先登录后台');
+      const titleEl = document.getElementById('wish-title');
+      const title = titleEl.value.trim();
+      if (!title) return toast('请输入心愿标题');
+      try {
+        await getJson('/api/admin/wishlist', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Admin-Token': adminToken
+          },
+          body: JSON.stringify({ title })
+        });
+        titleEl.value = '';
+        await loadWishlist();
+        toast('心愿已添加');
+      } catch (error) {
+        toast(error.message);
+      }
+    }
+
+    async function loadAdminMessages() {
+      const container = document.getElementById('admin-message-list');
+      const items = await getJson('/api/messages');
+      container.innerHTML = items.length ? items.map(item => renderMessageCard(item, true)).join('') : '<p class="text-sm text-neutral-500">暂无留言</p>';
+      lucide.createIcons();
+    }
+
+    async function adminDeleteMessage(id) {
+      if (!adminToken) return toast('请先登录后台');
+      if (!window.confirm('确认删除这条留言吗？')) return;
+      try {
+        await getJson(`/api/admin/messages/${id}`, {
+          method: 'DELETE',
+          headers: { 'X-Admin-Token': adminToken }
+        });
+        await Promise.all([loadMessages(), loadAdminMessages()]);
+        toast('留言已删除');
+      } catch (error) {
+        toast(error.message);
+      }
+    }
+
+    window.adminDeleteMessage = adminDeleteMessage;
+
+    function openLightbox(src) {
+      const box = document.getElementById('lightbox');
+      const image = document.getElementById('lightbox-image');
+      lbScale = 1;
+      image.style.transform = 'scale(1)';
+      image.src = src;
+      box.classList.add('open');
+    }
+
+    function closeLightbox() {
+      document.getElementById('lightbox').classList.remove('open');
+    }
+
+    function applyZoom(delta) {
+      lbScale = Math.max(0.8, Math.min(3, lbScale + delta));
+      document.getElementById('lightbox-image').style.transform = `scale(${lbScale})`;
+    }
+
+    window.openLightbox = openLightbox;
+
+    function bindLightbox() {
+      const box = document.getElementById('lightbox');
+      const image = document.getElementById('lightbox-image');
+      document.getElementById('lb-close').addEventListener('click', closeLightbox);
+      document.getElementById('lb-zoom-in').addEventListener('click', () => applyZoom(0.2));
+      document.getElementById('lb-zoom-out').addEventListener('click', () => applyZoom(-0.2));
+      box.addEventListener('click', (event) => { if (event.target === box) closeLightbox(); });
+      box.addEventListener('wheel', (event) => {
+        if (!box.classList.contains('open')) return;
+        event.preventDefault();
+        applyZoom(event.deltaY < 0 ? 0.12 : -0.12);
+      }, { passive: false });
+      image.addEventListener('dblclick', () => {
+        lbScale = lbScale > 1 ? 1 : 2;
+        image.style.transform = `scale(${lbScale})`;
+      });
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') closeLightbox();
+      });
+    }
+
+    function mountAdminOrPublic() {
+      if (IS_ADMIN_ROUTE) {
+        PUBLIC_APP.classList.add('hidden');
+        PUBLIC_NAV_LINKS.classList.add('hidden');
+        ADMIN_APP.classList.remove('hidden');
+      } else {
+        PUBLIC_APP.classList.remove('hidden');
+        ADMIN_APP.classList.add('hidden');
+      }
+    }
+
+    async function bootstrap() {
+      mountAdminOrPublic();
+      updateCounters();
+      setInterval(updateCounters, 1000);
+      bindMusic();
+      bindLightbox();
+      lucide.createIcons();
+      if (!IS_ADMIN_ROUTE) {
+        await Promise.all([loadTimeline(), loadGallery(), loadWishlist(), loadMessages()]);
+      } else {
+        document.getElementById('admin-login-btn').addEventListener('click', adminLogin);
+        document.getElementById('admin-login-btn').addEventListener('keydown', (event) => {
+          if (event.key === 'Enter') adminLogin();
+        });
+      }
+
+      document.getElementById('message-submit').addEventListener('click', submitMessage);
+      document.getElementById('upload-btn').addEventListener('click', uploadAndFillTimelineImage);
+      document.getElementById('timeline-add-btn').addEventListener('click', addTimelineItem);
+      document.getElementById('wish-add-btn').addEventListener('click', addWish);
+    }
+
+    bootstrap().catch(error => {
+      toast(error.message || '页面初始化失败');
     });
-    if (r.ok) {
-      toast('时光机节点添加成功 ✨');
-      ['a-date','a-title','a-desc','a-img'].forEach(id => { document.getElementById(id).value = ''; });
-      loadTl();
-    } else if (r.status === 401) {
-      toast('认证失效，请重新登录'); admPwd = ''; closeOv('panel-ov'); openAdminLogin();
-    } else { toast('添加失败，请重试'); }
-  } catch { toast('网络错误'); }
-}
-
-/* ── Admin: Upload Photo ── */
-function prevFile(e) {
-  const file = e.target.files[0]; if (!file) return;
-  const reader = new FileReader();
-  reader.onload = ev => {
-    document.getElementById('prev-img').src = ev.target.result;
-    document.getElementById('prev-wrap').classList.remove('hidden');
-  };
-  reader.readAsDataURL(file);
-}
-async function uploadPhoto() {
-  const inp = document.getElementById('a-file');
-  if (!inp.files[0]) { toast('请先选择照片'); return; }
-  const fd = new FormData();
-  fd.append('file', inp.files[0]); fd.append('password', admPwd);
-  try {
-    const r = await fetch('/api/admin/upload', { method: 'POST', body: fd });
-    const data = await r.json();
-    if (r.ok) {
-      document.getElementById('up-res').innerHTML = `✅ 上传成功！<br>URL: <code class="bg-neutral-100 px-1.5 py-0.5 rounded text-[11px]">${data.url}</code>`;
-      toast('照片上传成功！'); inp.value = ''; document.getElementById('prev-wrap').classList.add('hidden');
-    } else { toast('上传失败：' + (data.detail || '未知错误')); }
-  } catch { toast('网络错误'); }
-}
-
-/* ── Admin: Manage Messages ── */
-async function loadAdmMsgs() {
-  try {
-    const msgs = await (await fetch('/api/messages')).json();
-    const c = document.getElementById('adm-msgs');
-    if (!msgs?.length) { c.innerHTML = '<p class="text-[#6e6e73] text-sm py-4 text-center">暂无留言</p>'; return; }
-    c.innerHTML = msgs.map(m => `
-      <div id="am${m.id}" class="flex items-center justify-between gap-3 p-3.5 rounded-[14px] bg-[#fbfbfd] border border-neutral-100">
-        <div class="flex-1 min-w-0">
-          <span class="font-semibold text-[13.5px]">${m.nickname}</span>
-          <span class="text-[11.5px] text-[#6e6e73] ml-2">${(m.created_at || '').slice(0, 16)}</span>
-          <p class="text-[12.5px] text-[#6e6e73] truncate mt-0.5">${m.content}</p>
-        </div>
-        <button onclick="delMsg(${m.id})" class="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-xl hover:bg-red-50 text-[#e84857] transition-colors">
-          <i data-lucide="trash-2" class="w-4 h-4"></i>
-        </button>
-      </div>`).join('');
-    lucide.createIcons();
-  } catch { toast('加载失败'); }
-}
-async function delMsg(id) {
-  if (!confirm('确定删除这条留言吗？')) return;
-  try {
-    const r = await fetch(`/api/messages/${id}?password=${encodeURIComponent(admPwd)}`, { method: 'DELETE' });
-    if (r.ok) { document.getElementById('am' + id)?.remove(); loadMsgs(); toast('留言已删除'); }
-    else if (r.status === 401) { toast('认证失效，请重新登录'); admPwd = ''; }
-    else { toast('删除失败'); }
-  } catch { toast('网络错误'); }
-}
-
-/* ── Toast ── */
-let toastT;
-function toast(msg) {
-  const el = document.getElementById('toast');
-  el.textContent = msg; el.classList.add('show');
-  clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove('show'), 3200);
-}
-
-/* ── Init ── */
-loadTl(); loadWl(); loadMsgs();
-
-// 访问 /admin 路径时自动打开管理员弹窗
-if (window.location.pathname === '/admin') {
-  setTimeout(() => openAdminLogin(), 600);
-}
-</script>
+  </script>
 </body>
 </html>
