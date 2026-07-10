@@ -1,31 +1,63 @@
-"""独立运行脚本：初始化 SQLite 数据库（首次部署时执行）
-用法：python init_db.py
-"""
-import sqlite3
+"""初始化 database.db（留言板、心愿单、管理员口令）"""
+
+import datetime as dt
+import hashlib
 import os
+import secrets
+import sqlite3
 
 DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "database.db")
 
 
-def init_db():
+def hash_password(password: str, salt: str) -> str:
+    return hashlib.sha256((salt + password).encode("utf-8")).hexdigest()
+
+
+def init_db() -> None:
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
 
-    cur.execute("""
-    CREATE TABLE IF NOT EXISTS messages (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        nickname TEXT NOT NULL,
-        content  TEXT NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )""")
-
-    cur.execute("""
-    CREATE TABLE IF NOT EXISTS wishlist (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        title      TEXT NOT NULL,
-        completed  INTEGER DEFAULT 0,
-        completed_at TEXT
-    )""")
+    cur.execute(
+        """
+        CREATE TABLE IF NOT EXISTS messages (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nickname TEXT NOT NULL,
+            content TEXT NOT NULL,
+            created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
+            updated_at TEXT
+        )
+        """
+    )
+    cur.execute(
+        """
+        CREATE TABLE IF NOT EXISTS wishlist (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT NOT NULL,
+            completed INTEGER NOT NULL DEFAULT 0,
+            created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
+            completed_at TEXT
+        )
+        """
+    )
+    cur.execute(
+        """
+        CREATE TABLE IF NOT EXISTS admin_credentials (
+            id INTEGER PRIMARY KEY CHECK (id = 1),
+            password_hash TEXT NOT NULL,
+            salt TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        )
+        """
+    )
+    cur.execute(
+        """
+        CREATE TABLE IF NOT EXISTS admin_sessions (
+            token TEXT PRIMARY KEY,
+            created_at TEXT NOT NULL,
+            expires_at TEXT NOT NULL
+        )
+        """
+    )
 
     cur.execute("SELECT COUNT(*) FROM wishlist")
     if cur.fetchone()[0] == 0:
@@ -51,9 +83,23 @@ def init_db():
             ],
         )
 
+    cur.execute("SELECT password_hash FROM admin_credentials WHERE id = 1")
+    if cur.fetchone() is None:
+        raw_password = os.environ.get("LOVE_ADMIN_PASSWORD", "love")
+        salt = secrets.token_hex(16)
+        cur.execute(
+            "INSERT INTO admin_credentials (id, password_hash, salt, updated_at) VALUES (1, ?, ?, ?)",
+            (
+                hash_password(raw_password, salt),
+                salt,
+                dt.datetime.now(dt.timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z"),
+            ),
+        )
+
     conn.commit()
     conn.close()
-    print("✅ 数据库初始化完成：", DB_PATH)
+    print(f"database.db 初始化完成: {DB_PATH}")
+    print("默认管理员口令来自环境变量 LOVE_ADMIN_PASSWORD；未设置时默认值为: love")
 
 
 if __name__ == "__main__":
