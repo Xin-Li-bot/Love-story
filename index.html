@@ -1,694 +1,399 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN" class="scroll-smooth">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>李欣 ❤️ 王雅婷 · 我们的故事</title>
-
-<!-- Tailwind CSS -->
-<script src="https://cdn.tailwindcss.com"></script>
-<!-- Lucide Icons -->
-<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-<!-- Canvas Confetti -->
-<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
-
-<script>
-tailwind.config = {
-  theme: {
-    extend: {
-      colors: {
-        rg: { DEFAULT:'#b76e79', light:'#d4a0aa', dark:'#8b4d57', bg:'#fdf2f4', card:'#f9ecee' }
-      }
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#f7f7f5">
+  <meta name="description" content="李欣与王雅婷的恋爱纪念站">
+  <title>李欣 & 王雅婷 · 我们的故事</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+  <script>
+    tailwind.config = { darkMode: ['class', '[data-theme="dark"]'] };
+  </script>
+  <style>
+    :root {
+      --bg: #ffffff; --surface: #f7f7f5; --surface-2: #eeeeeb; --text: #1d1d1f;
+      --muted: #6e6e73; --line: rgba(29,29,31,.1); --rose: #a86773; --rose-strong: #87515b;
+      --rose-soft: #f3e5e7; --green: #5d806d; --shadow: 0 10px 35px rgba(33,27,28,.07);
     }
-  }
-}
-</script>
-
-<style>
-/* ── Base ── */
-*{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue",Arial,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#fff;color:#1d1d1f;overflow-x:hidden}
-::-webkit-scrollbar{width:5px}::-webkit-scrollbar-thumb{background:#ddd;border-radius:3px}
-
-/* ── Frosted Glass Navbar ── */
-.glass{background:rgba(255,255,255,.78);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px)}
-
-/* ── Hero ── */
-.hero-bg{background:radial-gradient(ellipse at 25% 55%,#fce4ec 0%,#fdf2f4 38%,#fff9fb 68%,#f8f8f8 100%)}
-
-/* ── Blobs ── */
-@keyframes f1{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-18px,-24px) scale(1.06)}}
-@keyframes f2{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(16px,-18px) scale(1.09)}}
-@keyframes f3{0%,100%{transform:translate(0,0)}50%{transform:translate(-12px,22px)}}
-.b1{animation:f1 9s ease-in-out infinite}.b2{animation:f2 11s ease-in-out infinite}.b3{animation:f3 7s ease-in-out infinite}
-
-/* ── Reveal ── */
-.reveal{opacity:0;transform:translateY(28px);transition:opacity .75s ease,transform .75s ease}
-.reveal.visible{opacity:1;transform:translateY(0)}
-
-/* ── Card ── */
-.card{background:#fff;border-radius:22px;border:1px solid #f0f0f0;box-shadow:0 2px 14px rgba(0,0,0,.045);transition:transform .28s ease,box-shadow .28s ease}
-.card:hover{transform:translateY(-4px);box-shadow:0 14px 36px rgba(183,110,121,.13)}
-
-/* ── Timeline ── */
-.tl-line{position:absolute;left:50%;top:0;bottom:0;width:1.5px;background:linear-gradient(to bottom,transparent,#e8c4c4 15%,#b76e79 50%,#e8c4c4 85%,transparent);transform:translateX(-50%)}
-.tl-dot{position:absolute;left:50%;width:13px;height:13px;border-radius:50%;background:#fff;border:2.5px solid #b76e79;transform:translateX(-50%);z-index:10;box-shadow:0 0 0 5px rgba(183,110,121,.1);transition:box-shadow .25s ease}
-.tl-dot:hover{box-shadow:0 0 0 9px rgba(183,110,121,.15)}
-
-/* ── Gallery ── */
-.gal-item{position:relative;overflow:hidden;border-radius:20px;cursor:pointer;display:block}
-.gal-item img{transition:transform .45s ease;width:100%;height:100%;object-fit:cover;display:block}
-.gal-item:hover img{transform:scale(1.07)}
-.gal-ov{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.48),transparent);opacity:0;transition:opacity .3s;display:flex;align-items:flex-end;padding:14px}
-.gal-item:hover .gal-ov{opacity:1}
-
-/* ── Lightbox ── */
-.lb{position:fixed;inset:0;z-index:1100;background:rgba(0,0,0,.92);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);display:flex;justify-content:center;align-items:center;visibility:hidden;opacity:0;transition:opacity .3s ease,visibility .3s ease;pointer-events:none}
-.lb.open{visibility:visible;opacity:1;pointer-events:all}
-.lb img{max-width:90vw;max-height:88vh;border-radius:14px;object-fit:contain;transform:scale(.92);transition:transform .32s ease}
-.lb.open img{transform:scale(1)}
-
-/* ── Overlays (modal) ── */
-.ov{position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.46);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:flex;justify-content:center;align-items:center;visibility:hidden;opacity:0;transition:opacity .3s ease,visibility .3s ease;pointer-events:none;padding:16px}
-.ov.open{visibility:visible;opacity:1;pointer-events:all}
-
-/* ── Gradient Text ── */
-.grad{background:linear-gradient(135deg,#8b4d57,#b76e79,#d4a0aa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-
-/* ── Countdown ── */
-.cd-n{font-size:clamp(2rem,4.5vw,3rem);font-weight:700;letter-spacing:-.04em;line-height:1;color:#8b4d57}
-
-/* ── Section Tag ── */
-.stag{font-size:11px;font-weight:600;letter-spacing:.16em;color:#b76e79;text-transform:uppercase}
-.sline{width:48px;height:2.5px;background:linear-gradient(90deg,#b76e79,#e8c4c4);border-radius:2px;margin:14px auto}
-
-/* ── Input ── */
-.inp{width:100%;padding:12px 18px;border-radius:14px;border:1px solid #e8e8e8;background:#fff;font-size:14px;outline:none;transition:border-color .2s,box-shadow .2s;font-family:inherit}
-.inp:focus{border-color:#b76e79;box-shadow:0 0 0 3px rgba(183,110,121,.14)}
-
-/* ── Wish Card ── */
-.wcard{display:flex;align-items:flex-start;gap:14px;padding:18px 20px;background:#fff;border-radius:20px;border:1px solid #f0f0f0;box-shadow:0 2px 10px rgba(0,0,0,.04);cursor:pointer;transition:transform .25s,box-shadow .25s,border-color .25s}
-.wcard:hover{transform:translateY(-3px);box-shadow:0 10px 30px rgba(183,110,121,.13);border-color:#e8c4c4}
-
-/* ── Message Card ── */
-.mcard{padding:20px 22px;background:#fafafa;border-radius:20px;border:1px solid #f0f0f0;position:relative;overflow:hidden}
-.mcard::before{content:'';position:absolute;left:0;top:10px;bottom:10px;width:3px;background:linear-gradient(to bottom,#b76e79,#e8c4c4);border-radius:0 3px 3px 0}
-
-/* ── Heart Particles ── */
-@keyframes hup{0%{transform:translateY(0) scale(1);opacity:1}100%{transform:translateY(-130px) scale(.2);opacity:0}}
-.hp{position:fixed;pointer-events:none;font-size:22px;z-index:9999;animation:hup 1.9s ease-out forwards}
-
-/* ── Toast ── */
-#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1d1d1f;color:#fff;font-size:14px;padding:11px 22px;border-radius:100px;z-index:9999;opacity:0;transition:opacity .35s ease;pointer-events:none;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.18)}
-#toast.show{opacity:1}
-
-/* ── Music Pulse ── */
-@keyframes mr{0%{transform:scale(.8);opacity:.9}100%{transform:scale(1.7);opacity:0}}
-#mbtn.playing::after{content:'';position:absolute;inset:0;border-radius:50%;background:rgba(183,110,121,.28);animation:mr 1.5s ease-out infinite}
-
-/* ── Admin Tab ── */
-.atab{padding:11px 0;margin-right:24px;font-size:13.5px;font-weight:500;color:#888;cursor:pointer;border-bottom:2px solid transparent;transition:color .2s,border-color .2s;background:none;border-top:none;border-left:none;border-right:none}
-.atab.on{color:#b76e79;border-bottom-color:#b76e79}
-.atp{display:none}.atp.on{display:block}
-</style>
+    [data-theme="dark"] {
+      --bg: #000; --surface: #111; --surface-2: #1c1c1e; --text: #f5f5f7;
+      --muted: #a1a1a6; --line: rgba(255,255,255,.12); --rose: #d09aa4; --rose-strong: #e2aeb7;
+      --rose-soft: #24191b; --green: #82a990; --shadow: 0 12px 40px rgba(0,0,0,.38);
+    }
+    * { box-sizing: border-box; letter-spacing: 0; }
+    html { background: var(--bg); }
+    body { margin: 0; background: var(--bg); color: var(--text); font-family: -apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue","PingFang SC","Microsoft YaHei",sans-serif; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+    body.modal-open { overflow: hidden; }
+    button, input, textarea { font: inherit; }
+    button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px solid var(--rose); outline-offset: 3px; }
+    .container { width: min(1120px, calc(100% - 40px)); margin-inline: auto; }
+    .glass { background: color-mix(in srgb, var(--bg) 78%, transparent); -webkit-backdrop-filter: saturate(180%) blur(22px); backdrop-filter: saturate(180%) blur(22px); }
+    .hero { min-height: calc(100svh - 48px); position: relative; display: flex; align-items: flex-end; overflow: hidden; background: #1d1d1f; }
+    .hero-photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 42%; transform: scale(1.01); }
+    .hero-shade { position: absolute; inset: 0; background: linear-gradient(90deg,rgba(0,0,0,.73) 0%,rgba(0,0,0,.28) 48%,rgba(0,0,0,.08) 70%),linear-gradient(0deg,rgba(0,0,0,.58),transparent 58%); }
+    .hero-copy { position: relative; z-index: 1; padding: 0 0 clamp(56px,9vh,100px); width: min(680px, 90%); color: white; }
+    .hero-title { font-size: clamp(44px,7vw,86px); line-height: 1.02; font-weight: 750; margin: 0; }
+    .hero-days { font-size: clamp(72px,13vw,154px); line-height: .92; font-weight: 760; margin: 14px 0 18px; font-variant-numeric: tabular-nums; }
+    .eyebrow { color: var(--rose); font-size: 12px; font-weight: 700; text-transform: uppercase; }
+    .section-title { margin: 9px 0 0; font-size: clamp(34px,5vw,58px); line-height: 1.06; font-weight: 740; }
+    .section-copy { color: var(--muted); max-width: 620px; margin: 18px auto 0; line-height: 1.8; }
+    .section-head { text-align: center; margin-bottom: 56px; }
+    .band { padding: 104px 0; }
+    .band-alt { background: var(--surface); }
+    .icon-btn { width: 38px; height: 38px; display: inline-flex; align-items: center; justify-content: center; border: 0; border-radius: 50%; color: var(--text); background: transparent; cursor: pointer; transition: background .2s, color .2s, transform .2s; }
+    .icon-btn:hover { background: var(--surface-2); color: var(--rose); }
+    .primary, .secondary, .danger { min-height: 44px; border-radius: 8px; padding: 0 18px; border: 1px solid transparent; font-weight: 650; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: transform .2s, box-shadow .2s, background .2s; }
+    .primary { color: white; background: var(--rose); }
+    .primary:hover { background: var(--rose-strong); box-shadow: 0 8px 22px color-mix(in srgb,var(--rose) 26%,transparent); transform: translateY(-1px); }
+    .secondary { color: var(--text); background: var(--surface); border-color: var(--line); }
+    .secondary:hover { background: var(--surface-2); }
+    .danger { color: #c63f4d; background: transparent; border-color: color-mix(in srgb,#c63f4d 30%,transparent); }
+    .field { width: 100%; min-height: 46px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--text); padding: 11px 13px; transition: border .2s, box-shadow .2s; }
+    .field:focus { border-color: var(--rose); box-shadow: 0 0 0 3px color-mix(in srgb,var(--rose) 15%,transparent); outline: 0; }
+    textarea.field { resize: vertical; min-height: 112px; }
+    .label { display: block; color: var(--muted); font-size: 12px; font-weight: 650; margin: 0 0 7px; }
+    .timeline { position: relative; }
+    .timeline::before { content: ""; position: absolute; left: 50%; top: 0; bottom: 0; width: 1px; background: var(--line); }
+    .timeline-row { display: grid; grid-template-columns: 1fr 1fr; gap: 72px; position: relative; margin-bottom: 44px; }
+    .timeline-row::before { content: ""; position: absolute; left: 50%; top: 30px; width: 11px; height: 11px; border-radius: 50%; background: var(--bg); border: 2px solid var(--rose); transform: translateX(-50%); box-shadow: 0 0 0 6px color-mix(in srgb,var(--rose) 12%,transparent); }
+    .memory-card { border: 1px solid var(--line); border-radius: 8px; background: var(--bg); overflow: hidden; box-shadow: 0 2px 14px rgba(0,0,0,.025); transition: transform .3s, box-shadow .3s; }
+    .memory-card:hover { transform: translateY(-4px); box-shadow: var(--shadow); }
+    .memory-photo { aspect-ratio: 4/3; width: 100%; object-fit: cover; display: block; cursor: zoom-in; }
+    .memory-body { padding: 22px; }
+    .memory-date { color: var(--rose); font-size: 12px; font-weight: 700; }
+    .memory-title { margin: 7px 0 9px; font-size: 20px; line-height: 1.35; font-weight: 700; }
+    .memory-desc { color: var(--muted); font-size: 14px; line-height: 1.75; margin: 0; }
+    .gallery { display: grid; grid-template-columns: repeat(12,1fr); grid-auto-rows: 210px; gap: 12px; }
+    .gallery-item { border: 0; padding: 0; border-radius: 8px; overflow: hidden; cursor: zoom-in; position: relative; background: var(--surface); grid-column: span 4; }
+    .gallery-item:nth-child(1), .gallery-item:nth-child(7) { grid-column: span 8; grid-row: span 2; }
+    .gallery-item:nth-child(4), .gallery-item:nth-child(10) { grid-row: span 2; }
+    .gallery-item img { width: 100%; height: 100%; object-fit: cover; transition: transform .45s ease; }
+    .gallery-item:hover img { transform: scale(1.045); }
+    .gallery-label { position: absolute; inset: auto 0 0; padding: 36px 14px 13px; color: white; font-size: 13px; text-align: left; background: linear-gradient(transparent,rgba(0,0,0,.66)); opacity: 0; transition: opacity .25s; }
+    .gallery-item:hover .gallery-label, .gallery-item:focus-visible .gallery-label { opacity: 1; }
+    .wish-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; max-width: 840px; margin: auto; }
+    .wish { min-height: 104px; width: 100%; display: flex; align-items: center; gap: 16px; text-align: left; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--text); padding: 18px; cursor: pointer; transition: transform .3s,box-shadow .3s,border .3s; }
+    .wish:hover { transform: translateY(-3px); box-shadow: var(--shadow); border-color: color-mix(in srgb,var(--rose) 36%,var(--line)); }
+    .wish.done { color: var(--muted); }
+    .wish-icon { width: 42px; height: 42px; border-radius: 50%; background: var(--rose-soft); color: var(--rose); display: grid; place-items: center; flex: 0 0 auto; }
+    .wish.done .wish-icon { color: var(--green); background: color-mix(in srgb,var(--green) 13%,var(--bg)); }
+    .message-layout { display: grid; grid-template-columns: 360px 1fr; gap: 56px; align-items: start; }
+    .message-form { position: sticky; top: 90px; }
+    .message { padding: 22px 0; border-bottom: 1px solid var(--line); }
+    .message:first-child { padding-top: 0; }
+    .avatar { width: 38px; height: 38px; border-radius: 50%; color: white; background: var(--rose); display: grid; place-items: center; font-weight: 700; flex: 0 0 auto; }
+    .modal { position: fixed; inset: 0; z-index: 100; display: none; place-items: center; padding: 18px; background: rgba(0,0,0,.52); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
+    .modal.open { display: grid; }
+    .dialog { width: min(620px,100%); max-height: min(820px,90svh); overflow: auto; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); box-shadow: 0 26px 80px rgba(0,0,0,.25); }
+    .dialog-wide { width: min(840px,100%); }
+    .dialog-head { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px 22px; border-bottom: 1px solid var(--line); background: color-mix(in srgb,var(--bg) 90%,transparent); -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px); }
+    .dialog-body { padding: 24px; }
+    .tabs { display: flex; overflow-x: auto; border-bottom: 1px solid var(--line); }
+    .tab { padding: 13px 18px; border: 0; border-bottom: 2px solid transparent; background: transparent; color: var(--muted); font-size: 13px; font-weight: 650; cursor: pointer; white-space: nowrap; }
+    .tab.active { color: var(--rose); border-bottom-color: var(--rose); }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+    .lightbox { position: fixed; inset: 0; z-index: 120; display: none; background: rgba(0,0,0,.94); color: white; overflow: hidden; touch-action: none; }
+    .lightbox.open { display: block; }
+    .lightbox-stage { position: absolute; inset: 64px 64px 72px; display: grid; place-items: center; overflow: hidden; }
+    .lightbox-image { max-width: 100%; max-height: 100%; object-fit: contain; transform: scale(1); transition: transform .22s ease; user-select: none; -webkit-user-drag: none; }
+    .lightbox-top { position: absolute; inset: 12px 12px auto; display: flex; justify-content: space-between; align-items: center; z-index: 2; }
+    .lightbox-tools { display: flex; gap: 5px; }
+    .lightbox .icon-btn { color: white; background: rgba(255,255,255,.1); }
+    .lightbox .icon-btn:hover { background: rgba(255,255,255,.2); }
+    .lightbox-nav { position: absolute; top: 50%; transform: translateY(-50%); z-index: 2; }
+    .lightbox-prev { left: 14px; } .lightbox-next { right: 14px; }
+    .lightbox-caption { position: absolute; left: 20px; right: 20px; bottom: 20px; text-align: center; color: rgba(255,255,255,.76); font-size: 13px; }
+    .toast { position: fixed; left: 50%; bottom: 24px; z-index: 200; transform: translate(-50%,16px); opacity: 0; pointer-events: none; color: white; background: #1d1d1f; border-radius: 999px; padding: 11px 18px; font-size: 13px; box-shadow: 0 8px 28px rgba(0,0,0,.24); transition: opacity .25s,transform .25s; }
+    .toast.show { opacity: 1; transform: translate(-50%,0); }
+    .skeleton { min-height: 160px; border-radius: 8px; background: var(--surface-2); animation: pulse 1.2s ease-in-out infinite alternate; }
+    @keyframes pulse { to { opacity: .45; } }
+    @keyframes heart-up { to { transform: translateY(-150px) rotate(18deg); opacity: 0; } }
+    .heart-particle { position: fixed; z-index: 199; pointer-events: none; animation: heart-up 1.8s ease-out forwards; }
+    .reveal { opacity: 0; transform: translateY(24px); transition: opacity .65s ease,transform .65s ease; }
+    .reveal.visible { opacity: 1; transform: none; }
+    .mobile-menu { display: none; position: fixed; top: 60px; left: 12px; right: 12px; z-index: 49; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); box-shadow: var(--shadow); padding: 8px; }
+    .mobile-menu.open { display: block; }
+    .mobile-menu a { display: block; color: var(--text); text-decoration: none; padding: 12px; border-radius: 6px; font-size: 14px; }
+    .mobile-menu a:hover { background: var(--surface); }
+    @media (max-width: 800px) {
+      .desktop-nav { display: none!important; } .mobile-only { display: inline-flex!important; }
+      .hero { min-height: calc(100svh - 36px); } .hero-photo { object-position: 48% center; }
+      .hero-shade { background: linear-gradient(0deg,rgba(0,0,0,.78) 0%,rgba(0,0,0,.22) 70%,rgba(0,0,0,.14)); }
+      .hero-copy { padding-bottom: 46px; width: 100%; } .hero-days { font-size: clamp(68px,23vw,108px); }
+      .band { padding: 76px 0; } .section-head { margin-bottom: 42px; }
+      .timeline::before { left: 5px; } .timeline-row { display: block; margin-left: 28px; margin-bottom: 24px; }
+      .timeline-row::before { left: -23px; top: 28px; } .timeline-row > .empty { display: none; }
+      .gallery { grid-template-columns: 1fr 1fr; grid-auto-rows: 190px; gap: 8px; }
+      .gallery-item, .gallery-item:nth-child(n) { grid-column: span 1; grid-row: span 1; }
+      .gallery-item:nth-child(1), .gallery-item:nth-child(6) { grid-column: span 2; }
+      .wish-grid { grid-template-columns: 1fr; } .message-layout { grid-template-columns: 1fr; gap: 48px; }
+      .message-form { position: static; } .lightbox-stage { inset: 58px 8px 76px; }
+    }
+    @media (prefers-reduced-motion: reduce) { *,*::before,*::after { scroll-behavior:auto!important; animation-duration:.01ms!important; transition-duration:.01ms!important; } }
+  </style>
 </head>
-
 <body>
+  <audio id="bgm" loop preload="metadata" src="/static/love_song.mp3"></audio>
 
-<!-- BGM -->
-<audio id="bgm" loop preload="none"><source src="/static/bgm.mp3" type="audio/mpeg"></audio>
-
-<!-- ═══════════════ NAVBAR ═══════════════ -->
-<nav class="glass fixed top-0 inset-x-0 z-50 h-[60px] border-b border-white/20">
-  <div class="max-w-6xl mx-auto h-full px-5 flex items-center justify-between">
-    <!-- Logo -->
-    <div class="flex items-center gap-1.5">
-      <span class="text-[19px]">❤️</span>
-      <span class="font-semibold text-[15px] tracking-tight">李欣 <span class="text-[#b76e79]">&amp;</span> 王雅婷</span>
+  <nav class="glass fixed inset-x-0 top-0 z-50 h-[60px] border-b" style="border-color:var(--line)" aria-label="主导航">
+    <div class="container h-full flex items-center justify-between">
+      <a href="#home" class="flex items-center gap-2 no-underline" style="color:var(--text)" aria-label="返回首页">
+        <span class="w-7 h-7 grid place-items-center rounded-full text-white text-xs font-bold" style="background:var(--rose)">L&W</span>
+        <span class="font-semibold text-sm">李欣 <span style="color:var(--rose)">&</span> 王雅婷</span>
+      </a>
+      <div class="desktop-nav flex items-center gap-7 text-[13px] font-medium" style="color:var(--muted)">
+        <a class="hover:text-[#a86773] no-underline" href="#timeline">时光机</a>
+        <a class="hover:text-[#a86773] no-underline" href="#gallery">相册</a>
+        <a class="hover:text-[#a86773] no-underline" href="#wishlist">心愿单</a>
+        <a class="hover:text-[#a86773] no-underline" href="#messages">留言板</a>
+      </div>
+      <div class="flex items-center gap-1">
+        <button id="music-btn" class="icon-btn" type="button" aria-label="播放背景音乐" title="背景音乐"><i data-lucide="music-2" class="w-4 h-4"></i></button>
+        <button id="theme-btn" class="icon-btn" type="button" aria-label="切换深色模式" title="切换外观"><i data-lucide="moon" class="w-4 h-4"></i></button>
+        <button id="admin-btn" class="icon-btn" type="button" aria-label="打开管理后台" title="管理后台"><i data-lucide="lock-keyhole" class="w-4 h-4"></i></button>
+        <button id="menu-btn" class="icon-btn mobile-only hidden" type="button" aria-label="打开导航"><i data-lucide="menu" class="w-5 h-5"></i></button>
+      </div>
     </div>
-    <!-- Links -->
-    <div class="hidden md:flex gap-7 text-[13px] font-medium text-[#1d1d1f]/55">
-      <a href="#timeline" class="hover:text-[#b76e79] transition-colors">时光机</a>
-      <a href="#gallery" class="hover:text-[#b76e79] transition-colors">相册</a>
-      <a href="#wishlist" class="hover:text-[#b76e79] transition-colors">心愿单</a>
-      <a href="#messages" class="hover:text-[#b76e79] transition-colors">留言板</a>
-    </div>
-    <!-- Controls -->
-    <div class="flex items-center gap-2">
-      <button id="mbtn" onclick="toggleMusic()" title="背景音乐"
-        class="relative w-9 h-9 rounded-full bg-[#fdf2f4] hover:bg-[#e8c4c4]/50 flex items-center justify-center text-[#b76e79] transition-colors">
-        <i data-lucide="music" class="w-4 h-4"></i>
-      </button>
-      <button onclick="openAdminLogin()" title="管理后台"
-        class="w-9 h-9 rounded-full bg-[#fdf2f4] hover:bg-[#e8c4c4]/50 flex items-center justify-center text-[#6e6e73] hover:text-[#b76e79] transition-colors">
-        <i data-lucide="settings-2" class="w-4 h-4"></i>
-      </button>
-    </div>
+  </nav>
+  <div id="mobile-menu" class="mobile-menu glass">
+    <a href="#timeline">时光机</a><a href="#gallery">相册</a><a href="#wishlist">心愿单</a><a href="#messages">留言板</a>
   </div>
-</nav>
 
-<!-- ═══════════════ HERO ═══════════════ -->
-<section class="hero-bg min-h-screen flex items-center justify-center relative overflow-hidden pt-16">
-  <div class="b1 absolute top-[14%] left-[8%] w-72 h-72 rounded-full bg-[#fce4ec]/55 blur-3xl pointer-events-none"></div>
-  <div class="b2 absolute bottom-[14%] right-[7%] w-80 h-80 rounded-full bg-[#f8bbd0]/45 blur-3xl pointer-events-none"></div>
-  <div class="b3 absolute top-[52%] left-[48%] w-56 h-56 rounded-full bg-[#fce4ec]/35 blur-2xl pointer-events-none"></div>
-
-  <div class="relative z-10 text-center px-6 max-w-4xl mx-auto">
-    <!-- Kicker -->
-    <div class="inline-flex items-center gap-2 mb-8 px-5 py-2 rounded-full bg-white/60 border border-[#e8c4c4] backdrop-blur-sm text-[13px] text-[#8b4d57] font-medium">
-      <span class="w-2 h-2 rounded-full bg-[#b76e79] animate-pulse inline-block"></span>
-      我们的故事正在书写中...
-    </div>
-    <!-- Title -->
-    <h1 class="font-bold tracking-tight text-[#1d1d1f] mb-2" style="font-size:clamp(3rem,8vw,5.5rem);line-height:1.05">在一起</h1>
-    <div class="grad font-bold mb-8" style="font-size:clamp(3.8rem,11vw,7.5rem);line-height:1;letter-spacing:-.03em">
-      第&nbsp;<span id="days-count">—</span>&nbsp;天
-    </div>
-    <p class="text-[#6e6e73] text-[17px] mb-12">2022 · 12 · 25 &nbsp;→&nbsp; 李欣 &amp; 王雅婷</p>
-
-    <!-- Countdown -->
-    <div class="inline-block bg-white/75 backdrop-blur-md border border-white/80 rounded-3xl px-8 md:px-12 py-7 shadow-sm mb-12">
-      <p class="stag mb-5">距离下一个周年纪念</p>
-      <div class="flex items-center gap-3 md:gap-5">
-        <div class="text-center min-w-[52px]"><div class="cd-n" id="cd-d">--</div><div class="text-[11px] text-[#6e6e73] mt-2 tracking-widest">天</div></div>
-        <div class="text-[#d4a0aa] text-2xl font-thin pb-5">:</div>
-        <div class="text-center min-w-[52px]"><div class="cd-n" id="cd-h">--</div><div class="text-[11px] text-[#6e6e73] mt-2 tracking-widest">时</div></div>
-        <div class="text-[#d4a0aa] text-2xl font-thin pb-5">:</div>
-        <div class="text-center min-w-[52px]"><div class="cd-n" id="cd-m">--</div><div class="text-[11px] text-[#6e6e73] mt-2 tracking-widest">分</div></div>
-        <div class="text-[#d4a0aa] text-2xl font-thin pb-5">:</div>
-        <div class="text-center min-w-[52px]"><div class="cd-n" id="cd-s">--</div><div class="text-[11px] text-[#6e6e73] mt-2 tracking-widest">秒</div></div>
-      </div>
-    </div>
-
-    <a href="#timeline" class="flex flex-col items-center gap-1.5 text-[#6e6e73]/65 text-[13px] hover:text-[#b76e79] transition-colors">
-      <span>向下探索</span>
-      <i data-lucide="chevron-down" class="w-5 h-5 animate-bounce"></i>
-    </a>
-  </div>
-</section>
-
-<!-- ═══════════════ TIMELINE ═══════════════ -->
-<section id="timeline" class="py-24 bg-[#fbfbfd]">
-  <div class="max-w-5xl mx-auto px-6">
-    <div class="text-center mb-16 reveal">
-      <p class="stag">Our Story</p>
-      <h2 class="text-[42px] md:text-[54px] font-bold tracking-tight text-[#1d1d1f] mt-2">恋爱时光机</h2>
-      <div class="sline"></div>
-      <p class="text-[#6e6e73] mt-3 text-[15px]">每一个时刻，都值得被铭记</p>
-    </div>
-    <div id="tlc" class="relative">
-      <div class="tl-line hidden md:block"></div>
-      <div class="flex justify-center py-16 text-[#6e6e73] gap-2 items-center">
-        <i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i><span>加载中...</span>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ═══════════════ GALLERY ═══════════════ -->
-<section id="gallery" class="py-24 bg-white">
-  <div class="max-w-6xl mx-auto px-6">
-    <div class="text-center mb-16 reveal">
-      <p class="stag">Photo Gallery</p>
-      <h2 class="text-[42px] md:text-[54px] font-bold tracking-tight text-[#1d1d1f] mt-2">我们的相册</h2>
-      <div class="sline"></div>
-      <p class="text-[#6e6e73] mt-3 text-[15px]">每一张照片，都是最美的收藏</p>
-    </div>
-    <div id="gal-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
-    <div id="gal-empty" class="hidden text-center py-20 text-[#6e6e73]">
-      <i data-lucide="image" class="w-14 h-14 mx-auto mb-4 text-[#e8c4c4]"></i>
-      <p class="text-[15px]">照片正在整理中，敬请期待 ✨</p>
-      <p class="text-[13px] mt-2 text-[#6e6e73]/60">可在管理后台上传照片并填写到时光机节点</p>
-    </div>
-  </div>
-</section>
-
-<!-- ═══════════════ WISHLIST ═══════════════ -->
-<section id="wishlist" class="py-24 bg-[#fbfbfd]">
-  <div class="max-w-3xl mx-auto px-6">
-    <div class="text-center mb-16 reveal">
-      <p class="stag">Dream List</p>
-      <h2 class="text-[42px] md:text-[54px] font-bold tracking-tight text-[#1d1d1f] mt-2">恋爱心愿单</h2>
-      <div class="sline"></div>
-      <p class="text-[#6e6e73] mt-3 text-[15px]">我们想一起完成的所有美好事情</p>
-    </div>
-    <div id="wlc" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
-  </div>
-</section>
-
-<!-- ═══════════════ MESSAGES ═══════════════ -->
-<section id="messages" class="py-24 bg-white">
-  <div class="max-w-2xl mx-auto px-6">
-    <div class="text-center mb-16 reveal">
-      <p class="stag">Message Board</p>
-      <h2 class="text-[42px] md:text-[54px] font-bold tracking-tight text-[#1d1d1f] mt-2">留言板</h2>
-      <div class="sline"></div>
-      <p class="text-[#6e6e73] mt-3 text-[15px]">给我们留下你的祝福 💌</p>
-    </div>
-    <!-- Form -->
-    <div class="card p-7 mb-8 reveal">
-      <div class="space-y-3.5">
-        <input id="mn" type="text" placeholder="你的昵称" maxlength="20" class="inp">
-        <textarea id="mc" rows="4" placeholder="写下你想说的话..." maxlength="500" class="inp resize-none"></textarea>
-        <button onclick="submitMsg()"
-          class="w-full py-3.5 rounded-[14px] bg-[#b76e79] hover:bg-[#8b4d57] active:scale-[.98] text-white font-semibold text-[15px] transition-all duration-200 hover:shadow-lg hover:shadow-[#b76e79]/20">
-          发送祝福 ✨
-        </button>
-      </div>
-    </div>
-    <!-- List -->
-    <div id="msgc" class="space-y-4"></div>
-  </div>
-</section>
-
-<!-- ═══════════════ FOOTER ═══════════════ -->
-<footer class="py-16 bg-[#fbfbfd] border-t border-neutral-100 text-center">
-  <div class="text-[34px] mb-3">❤️</div>
-  <h3 class="text-[23px] font-bold tracking-tight text-[#1d1d1f] mb-1.5">李欣 &amp; 王雅婷</h3>
-  <p class="text-[#6e6e73] text-[14px] mb-6">在一起的每一天，都是最好的礼物</p>
-  <p class="text-[#6e6e73]/40 text-[12px]">2022 · 12 · 25 — 始于圣诞节，永不落幕 🎄</p>
-</footer>
-
-<!-- ═══════════════ LIGHTBOX ═══════════════ -->
-<div id="lb" class="lb" onclick="if(event.target.id==='lb')closeLb()">
-  <button onclick="closeLb()"
-    class="absolute top-5 right-5 w-10 h-10 flex items-center justify-center rounded-full text-white/70 hover:text-white hover:bg-white/10 transition-colors z-10">
-    <i data-lucide="x" class="w-7 h-7"></i>
-  </button>
-  <img id="lb-img" src="" alt="">
-</div>
-
-<!-- ═══════════════ ADMIN LOGIN MODAL ═══════════════ -->
-<div id="login-ov" class="ov" onclick="if(event.target.id==='login-ov')closeOv('login-ov')">
-  <div class="bg-white rounded-3xl p-8 w-full max-w-sm shadow-2xl" onclick="event.stopPropagation()">
-    <div class="text-center mb-6">
-      <div class="w-14 h-14 rounded-2xl bg-[#fdf2f4] flex items-center justify-center mx-auto mb-4">
-        <i data-lucide="lock" class="w-7 h-7 text-[#b76e79]"></i>
-      </div>
-      <h3 class="text-[20px] font-bold text-[#1d1d1f]">管理员登录</h3>
-      <p class="text-[#6e6e73] text-[13.5px] mt-1">请输入管理口令</p>
-    </div>
-    <input id="apwd" type="password" placeholder="口令" class="inp mb-1 text-center tracking-[.25em]"
-      onkeydown="if(event.key==='Enter')doLogin()">
-    <p id="lerr" class="text-[#e84857] text-[13px] text-center min-h-[20px] mb-3"></p>
-    <button onclick="doLogin()"
-      class="w-full py-3.5 rounded-[14px] bg-[#b76e79] hover:bg-[#8b4d57] text-white font-semibold transition-all">登录</button>
-  </div>
-</div>
-
-<!-- ═══════════════ ADMIN PANEL MODAL ═══════════════ -->
-<div id="panel-ov" class="ov" onclick="if(event.target.id==='panel-ov')closeOv('panel-ov')">
-  <div class="bg-white rounded-3xl w-full max-w-lg shadow-2xl flex flex-col" style="max-height:88vh" onclick="event.stopPropagation()">
-    <!-- Header -->
-    <div class="flex items-center justify-between px-7 pt-6 pb-4 border-b border-neutral-100 flex-shrink-0">
-      <h3 class="text-[17px] font-bold text-[#1d1d1f]">🛠️ 秘密管理后台</h3>
-      <button onclick="closeOv('panel-ov')" class="text-[#6e6e73] hover:text-[#1d1d1f] transition-colors">
-        <i data-lucide="x" class="w-5 h-5"></i>
-      </button>
-    </div>
-    <!-- Tabs -->
-    <div class="flex px-7 border-b border-neutral-100 flex-shrink-0">
-      <button class="atab on" onclick="switchTab('t-tl',this)">📅 时光机</button>
-      <button class="atab" onclick="switchTab('t-up',this)">📸 上传照片</button>
-      <button class="atab" onclick="switchTab('t-msg',this)">💬 留言管理</button>
-    </div>
-    <!-- Scrollable Content -->
-    <div class="flex-1 overflow-y-auto p-7">
-
-      <!-- Tab: Timeline -->
-      <div id="t-tl" class="atp on space-y-3">
-        <p class="text-[13px] text-[#6e6e73] mb-2">追加新的时光机节点，自动按日期排序 📅</p>
-        <input id="a-date" type="date" class="inp">
-        <input id="a-title" type="text" placeholder="节点标题（如：第一次旅行 ✈️）" class="inp">
-        <textarea id="a-desc" rows="3" placeholder="描述这个美好的时刻..." class="inp resize-none"></textarea>
-        <input id="a-img" type="text" placeholder="图片 URL 或上传后路径（可选）" class="inp">
-        <button onclick="addTl()"
-          class="w-full py-3 rounded-[14px] bg-[#b76e79] hover:bg-[#8b4d57] text-white font-semibold text-[14px] transition-all">添加节点</button>
-      </div>
-
-      <!-- Tab: Upload -->
-      <div id="t-up" class="atp space-y-3">
-        <p class="text-[13px] text-[#6e6e73] mb-2">上传照片到服务器，支持 JPG / PNG / WebP 📸</p>
-        <div onclick="document.getElementById('a-file').click()"
-          class="border-2 border-dashed border-neutral-200 hover:border-[#b76e79] rounded-2xl p-10 text-center cursor-pointer transition-colors">
-          <i data-lucide="upload-cloud" class="w-10 h-10 mx-auto text-[#d4a0aa] mb-3"></i>
-          <p class="text-[14px] text-[#6e6e73]">点击选择照片</p>
-          <p class="text-[12px] text-[#6e6e73]/55 mt-1">JPG · PNG · WebP · GIF</p>
-        </div>
-        <input id="a-file" type="file" accept="image/*" class="hidden" onchange="prevFile(event)">
-        <div id="prev-wrap" class="hidden rounded-2xl overflow-hidden" style="max-height:180px">
-          <img id="prev-img" src="" class="w-full h-full object-cover">
-        </div>
-        <button onclick="uploadPhoto()"
-          class="w-full py-3 rounded-[14px] bg-[#b76e79] hover:bg-[#8b4d57] text-white font-semibold text-[14px] transition-all">上传照片</button>
-        <div id="up-res" class="text-[12.5px] text-[#6e6e73] break-all"></div>
-      </div>
-
-      <!-- Tab: Messages -->
-      <div id="t-msg" class="atp">
-        <p class="text-[13px] text-[#6e6e73] mb-4">管理留言板，可删除不当内容 🗑️</p>
-        <div id="adm-msgs" class="space-y-3"></div>
-      </div>
-
-    </div>
-  </div>
-</div>
-
-<!-- Toast -->
-<div id="toast"></div>
-
-<script>
-lucide.createIcons();
-
-const ANN = new Date('2022-12-25T00:00:00');
-let admPwd = '', bgmOn = false;
-
-/* ── Countdown ── */
-function tick() {
-  const now = new Date();
-  document.getElementById('days-count').textContent = Math.floor((now - ANN) / 864e5).toLocaleString();
-  let next = new Date(ANN); next.setFullYear(now.getFullYear());
-  if (next <= now) next.setFullYear(now.getFullYear() + 1);
-  const ms = next - now;
-  const p = n => String(n).padStart(2, '0');
-  document.getElementById('cd-d').textContent = p(Math.floor(ms / 864e5));
-  document.getElementById('cd-h').textContent = p(Math.floor(ms % 864e5 / 36e5));
-  document.getElementById('cd-m').textContent = p(Math.floor(ms % 36e5 / 6e4));
-  document.getElementById('cd-s').textContent = p(Math.floor(ms % 6e4 / 1e3));
-}
-tick(); setInterval(tick, 1000);
-
-/* ── Reveal Observer ── */
-const ro = new IntersectionObserver(
-  es => es.forEach(e => e.isIntersecting && e.target.classList.add('visible')),
-  { threshold: 0.1 }
-);
-document.querySelectorAll('.reveal').forEach(el => ro.observe(el));
-
-/* ── Music ── */
-function toggleMusic() {
-  const a = document.getElementById('bgm'), b = document.getElementById('mbtn');
-  bgmOn = !bgmOn;
-  bgmOn ? a.play().catch(() => {}) : a.pause();
-  b.classList.toggle('playing', bgmOn);
-}
-
-/* ── Lightbox ── */
-function openLb(src) {
-  document.getElementById('lb-img').src = src;
-  document.getElementById('lb').classList.add('open');
-}
-function closeLb() { document.getElementById('lb').classList.remove('open'); }
-
-/* ── Overlay Helpers ── */
-function openOv(id) { document.getElementById(id).classList.add('open'); }
-function closeOv(id) { document.getElementById(id).classList.remove('open'); }
-
-document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') { closeLb(); closeOv('login-ov'); closeOv('panel-ov'); }
-});
-
-/* ── Timeline ── */
-async function loadTl() {
-  try {
-    const r = await fetch('/api/timeline');
-    const items = await r.json();
-    renderTl(items); renderGal(items);
-  } catch {
-    document.getElementById('tlc').innerHTML = '<p class="text-center py-12 text-[#6e6e73]">暂无时光记录</p>';
-  }
-}
-
-function renderTl(items) {
-  const c = document.getElementById('tlc');
-  if (!items?.length) {
-    c.innerHTML = '<p class="text-center py-14 text-[#6e6e73]">暂无时光记录，快去管理后台添加第一个节点吧 ✨</p>';
-    return;
-  }
-  let html = '<div class="tl-line hidden md:block"></div>';
-  items.forEach((it, i) => {
-    const left = i % 2 === 0;
-    const imgH = it.image
-      ? `<div class="rounded-[14px] overflow-hidden aspect-video mb-4 cursor-pointer" onclick="openLb('${it.image}')"><img src="${it.image}" alt="" class="w-full h-full object-cover" loading="lazy" onerror="this.closest('div').style.display='none'"></div>`
-      : '';
-    const card = `<div class="card p-6 reveal">
-      <div class="flex items-center gap-1.5 text-[11px] font-semibold text-[#b76e79] uppercase tracking-wider mb-2">
-        <i data-lucide="calendar-heart" class="w-3.5 h-3.5"></i> ${it.date || ''}
-      </div>
-      <h3 class="text-[18px] font-bold text-[#1d1d1f] mb-3">${it.title || ''}</h3>
-      ${imgH}
-      <p class="text-[13.5px] text-[#6e6e73] leading-relaxed">${it.description || ''}</p>
-    </div>`;
-    html += `<div class="relative md:grid md:grid-cols-2 md:gap-10 mb-8 items-start">
-      <div class="tl-dot hidden md:block" style="top:30px"></div>
-      ${left ? `<div>${card}</div><div></div>` : `<div></div><div>${card}</div>`}
-    </div>`;
-  });
-  c.innerHTML = html;
-  c.querySelectorAll('.reveal').forEach(el => ro.observe(el));
-  lucide.createIcons();
-}
-
-/* ── Gallery ── */
-function renderGal(items) {
-  const grid = document.getElementById('gal-grid');
-  const empty = document.getElementById('gal-empty');
-  const photos = (items || []).filter(it => it.image && it.image.trim());
-  if (!photos.length) { grid.classList.add('hidden'); empty.classList.remove('hidden'); return; }
-  grid.innerHTML = photos.map(it => `
-    <div class="gal-item aspect-square reveal" onclick="openLb('${it.image}')">
-      <img src="${it.image}" alt="${it.title || ''}" loading="lazy"
-        onerror="this.closest('.gal-item').style.display='none'">
-      <div class="gal-ov"><p class="text-white text-[13px] font-medium">${it.title || ''}</p></div>
-    </div>`).join('');
-  grid.querySelectorAll('.reveal').forEach(el => ro.observe(el));
-}
-
-/* ── Wishlist ── */
-const WE = ['🌊','🌌','🎵','🐱','🌅','🎡','🗺️','🌸','🎋','🎠'];
-async function loadWl() {
-  try { renderWl(await (await fetch('/api/wishlist')).json()); }
-  catch { document.getElementById('wlc').innerHTML = '<div class="col-span-2 text-center py-8 text-[#6e6e73]">加载失败</div>'; }
-}
-function renderWl(items) {
-  document.getElementById('wlc').innerHTML = (items || []).map((it, i) => `
-    <div class="wcard ${it.completed ? 'opacity-70' : ''}" onclick="toggleWish(${it.id})">
-      <div class="w-12 h-12 rounded-xl flex-shrink-0 flex items-center justify-center text-[22px] ${it.completed ? 'bg-green-50' : 'bg-[#fdf2f4]'}">
-        ${it.completed ? '✅' : WE[i % WE.length]}
-      </div>
-      <div class="flex-1 min-w-0">
-        <div class="flex items-center justify-between gap-3">
-          <p class="font-semibold text-[14.5px] ${it.completed ? 'line-through text-[#6e6e73]' : 'text-[#1d1d1f]'}">${it.title}</p>
-          <div class="w-5 h-5 flex-shrink-0 rounded-full border-2 flex items-center justify-center ${it.completed ? 'bg-green-400 border-green-400' : 'border-[#d1d1d6]'}">
-            ${it.completed ? '<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5" width="11" height="11"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
+  <main>
+    <section id="home" class="hero" aria-labelledby="hero-title">
+      <img class="hero-photo" src="/static/20251226_一起看海.jpg" alt="李欣和王雅婷在海边的合影">
+      <div class="hero-shade"></div>
+      <div class="container">
+        <div class="hero-copy">
+          <p class="text-[13px] font-semibold mb-4 text-white/75">始于 2022 年 12 月 25 日</p>
+          <h1 id="hero-title" class="hero-title">李欣 & 王雅婷</h1>
+          <div class="hero-days"><span id="days-count">--</span><span class="text-[.28em] ml-2 font-semibold">天</span></div>
+          <p class="text-white/80 text-[15px] leading-7 max-w-[520px]">这是我们一起走过的日子，也是还在继续书写的故事。</p>
+          <div class="mt-7 flex flex-wrap items-center gap-3 text-[13px] text-white/80" aria-label="周年倒计时">
+            <span class="font-semibold text-white">距离下一个周年</span>
+            <span><b id="cd-days" class="text-white">--</b> 天</span><span><b id="cd-hours" class="text-white">--</b> 小时</span><span><b id="cd-minutes" class="text-white">--</b> 分</span><span><b id="cd-seconds" class="text-white">--</b> 秒</span>
           </div>
         </div>
-        ${it.completed && it.completed_at ? `<p class="text-[11.5px] text-[#6e6e73] mt-1">完成于 ${it.completed_at} ✨</p>` : ''}
       </div>
-    </div>`).join('');
-}
-async function toggleWish(id) {
-  if (!admPwd) { openAdminLogin(); toast('请先登录管理员账号 🔐'); return; }
-  try {
-    const r = await fetch(`/api/wishlist/toggle/${id}?password=${encodeURIComponent(admPwd)}`, { method: 'POST' });
-    if (r.ok) { loadWl(); }
-    else if (r.status === 401) { toast('认证已过期，请重新登录'); admPwd = ''; openAdminLogin(); }
-    else { toast('操作失败'); }
-  } catch { toast('网络错误'); }
-}
+    </section>
 
-/* ── Messages ── */
-const AVC = ['#b76e79','#8b4d57','#c89ba8','#d4a0aa','#a0727f','#cd9aa6'];
-async function loadMsgs() {
-  try { renderMsgs(await (await fetch('/api/messages')).json()); }
-  catch { document.getElementById('msgc').innerHTML = '<p class="text-center py-8 text-[#6e6e73]">暂无留言</p>'; }
-}
-function renderMsgs(msgs) {
-  const c = document.getElementById('msgc');
-  if (!msgs?.length) {
-    c.innerHTML = '<div class="text-center py-14 text-[#6e6e73]"><p class="text-5xl mb-3">💌</p><p>还没有留言，来第一个留下祝福吧！</p></div>';
-    return;
-  }
-  c.innerHTML = msgs.map((m, i) => `
-    <div class="mcard reveal">
-      <div class="flex gap-3 items-start">
-        <div class="w-9 h-9 rounded-xl flex-shrink-0 flex items-center justify-center text-white font-bold text-[14px]" style="background:${AVC[i % AVC.length]}">${(m.nickname || '?').slice(0, 1)}</div>
-        <div class="flex-1 min-w-0">
-          <div class="flex justify-between items-center mb-1.5">
-            <span class="font-semibold text-[14.5px]">${m.nickname}</span>
-            <span class="text-[11.5px] text-[#6e6e73]">${(m.created_at || '').slice(0, 16)}</span>
-          </div>
-          <p class="text-[13.5px] text-[#1d1d1f]/75 leading-relaxed">${m.content}</p>
+    <section id="timeline" class="band band-alt">
+      <div class="container">
+        <header class="section-head reveal"><div class="eyebrow">Our Story</div><h2 class="section-title">恋爱时光机</h2><p class="section-copy">从告白到远方，把每一个值得记住的瞬间，按时间轻轻放好。</p></header>
+        <div id="timeline-list" class="timeline" aria-live="polite"><div class="skeleton"></div></div>
+      </div>
+    </section>
+
+    <section id="gallery" class="band">
+      <div class="container">
+        <header class="section-head reveal"><div class="eyebrow">Photo Gallery</div><h2 class="section-title">我们的相册</h2><p class="section-copy">不是精心挑选的完美时刻，而是真实生活里一次次站在彼此身边。</p></header>
+        <div id="gallery-grid" class="gallery" aria-live="polite"><div class="skeleton col-span-full"></div></div>
+        <div class="text-center mt-8"><button id="gallery-more" class="secondary hidden" type="button"><i data-lucide="images" class="w-4 h-4"></i><span>查看全部照片</span></button></div>
+      </div>
+    </section>
+
+    <section id="wishlist" class="band band-alt">
+      <div class="container">
+        <header class="section-head reveal"><div class="eyebrow">Dream List</div><h2 class="section-title">恋爱心愿单</h2><p class="section-copy">未来不是一个抽象的词，它是这些想和你一起完成的小事。</p></header>
+        <div id="wish-list" class="wish-grid" aria-live="polite"><div class="skeleton"></div><div class="skeleton"></div></div>
+      </div>
+    </section>
+
+    <section id="messages" class="band">
+      <div class="container">
+        <header class="section-head reveal"><div class="eyebrow">Message Board</div><h2 class="section-title">留言板</h2><p class="section-copy">欢迎留下祝福。每一条温柔的留言，都会被认真收藏。</p></header>
+        <div class="message-layout">
+          <form id="message-form" class="message-form reveal">
+            <div class="mb-4"><label class="label" for="nickname">你的昵称</label><input id="nickname" class="field" maxlength="30" autocomplete="name" required></div>
+            <div class="mb-4"><label class="label" for="message-content">想说的话</label><textarea id="message-content" class="field" maxlength="500" required></textarea><div class="text-right text-[11px] mt-1" style="color:var(--muted)"><span id="message-count">0</span>/500</div></div>
+            <button id="message-submit" class="primary w-full" type="submit"><i data-lucide="send" class="w-4 h-4"></i><span>送出祝福</span></button>
+          </form>
+          <div id="message-list" aria-live="polite"><div class="skeleton"></div></div>
         </div>
       </div>
-    </div>`).join('');
-  c.querySelectorAll('.reveal').forEach(el => ro.observe(el));
-}
-async function submitMsg() {
-  const n = document.getElementById('mn').value.trim();
-  const ct = document.getElementById('mc').value.trim();
-  if (!n || !ct) { toast('昵称和内容都不能为空哦 💕'); return; }
-  try {
-    const r = await fetch('/api/messages', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ nickname: n, content: ct })
-    });
-    if (r.ok) {
-      document.getElementById('mn').value = '';
-      document.getElementById('mc').value = '';
-      toast('留言成功！谢谢你的祝福 💕');
-      celebrate(); loadMsgs();
-    } else { toast('留言失败，请重试'); }
-  } catch { toast('网络错误'); }
-}
+    </section>
+  </main>
 
-/* ── Celebrate ── */
-function celebrate() {
-  confetti({ particleCount: 130, spread: 82, origin: { y: .72 },
-    colors: ['#b76e79','#e8c4c4','#f8bbd0','#fce4ec','#ff8fa3','#ffffff'] });
-  setTimeout(() => confetti({ particleCount: 60, spread: 50, origin: { y: .72 }, angle: 60 }), 300);
-  setTimeout(() => confetti({ particleCount: 60, spread: 50, origin: { y: .72 }, angle: 120 }), 400);
-  const emos = ['❤️','💕','💗','💖','✨','🌸','💝','🎉'];
-  for (let i = 0; i < 12; i++) setTimeout(() => {
-    const h = document.createElement('div');
-    h.className = 'hp';
-    h.textContent = emos[Math.floor(Math.random() * emos.length)];
-    h.style.cssText = `left:${8 + Math.random() * 84}vw;top:72vh`;
-    document.body.appendChild(h);
-    setTimeout(() => h.remove(), 2100);
-  }, i * 110);
-}
+  <footer class="py-12 border-t text-center" style="border-color:var(--line);color:var(--muted)">
+    <div class="container"><p class="font-semibold" style="color:var(--text)">李欣 & 王雅婷</p><p class="text-xs mt-2">始于圣诞节…895 tokens truncated…ion>
+        <section id="messages-panel" class="tab-panel"><div id="admin-message-list"><div class="skeleton"></div></div></section>
+        <section id="security-panel" class="tab-panel">
+          <form id="password-form" class="max-w-md">
+            <div><label class="label" for="current-password">当前口令</label><input id="current-password" type="password" class="field" required></div>
+            <div class="mt-4"><label class="label" for="new-password">新口令（至少 8 位）</label><input id="new-password" type="password" minlength="8" maxlength="128" class="field" required></div>
+            <button class="primary mt-5" type="submit"><i data-lucide="key-round" class="w-4 h-4"></i><span>更新口令</span></button>
+          </form>
+        </section>
+      </div>
+    </div>
+  </div>
 
-/* ── Admin Login ── */
-function openAdminLogin() {
-  document.getElementById('lerr').textContent = '';
-  openOv('login-ov');
-  setTimeout(() => document.getElementById('apwd').focus(), 300);
-}
-async function doLogin() {
-  const pwd = document.getElementById('apwd').value;
-  if (!pwd) return;
-  try {
-    const r = await fetch('/api/admin/login', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ password: pwd })
-    });
-    if (r.ok) {
-      admPwd = pwd;
-      document.getElementById('apwd').value = '';
-      closeOv('login-ov');
-      openOv('panel-ov');
-      loadAdmMsgs();
-      toast('登录成功 🎉');
-    } else {
-      document.getElementById('lerr').textContent = '口令错误，请重试 🔐';
-      document.getElementById('apwd').value = '';
-      document.getElementById('apwd').focus();
+  <div id="lightbox" class="lightbox" role="dialog" aria-modal="true" aria-label="照片查看器">
+    <div class="lightbox-top"><span id="lightbox-count" class="text-xs text-white/70"></span><div class="lightbox-tools"><button id="zoom-out" class="icon-btn" aria-label="缩小"><i data-lucide="zoom-out" class="w-4 h-4"></i></button><button id="zoom-in" class="icon-btn" aria-label="放大"><i data-lucide="zoom-in" class="w-4 h-4"></i></button><button id="lightbox-close" class="icon-btn" aria-label="关闭"><i data-lucide="x" class="w-5 h-5"></i></button></div></div>
+    <button id="lightbox-prev" class="icon-btn lightbox-nav lightbox-prev" aria-label="上一张"><i data-lucide="chevron-left" class="w-6 h-6"></i></button>
+    <div id="lightbox-stage" class="lightbox-stage"><img id="lightbox-image" class="lightbox-image" alt=""></div>
+    <button id="lightbox-next" class="icon-btn lightbox-nav lightbox-next" aria-label="下一张"><i data-lucide="chevron-right" class="w-6 h-6"></i></button>
+    <div id="lightbox-caption" class="lightbox-caption"></div>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    const ANNIVERSARY = new Date('2022-12-25T00:00:00+08:00');
+    const state = { timeline: [], photos: [], galleryLimit: 12, lightboxIndex: 0, zoom: 1, token: sessionStorage.getItem('love_admin_token') || '' };
+    const $ = (selector, root = document) => root.querySelector(selector);
+    const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
+    const escapeHtml = value => String(value ?? '').replace(/[&<>'"]/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]));
+    const authHeaders = () => state.token ? { Authorization: `Bearer ${state.token}` } : {};
+
+    function refreshIcons() { if (window.lucide) lucide.createIcons(); }
+    function showToast(message) { const el = $('#toast'); el.textContent = message; el.classList.add('show'); clearTimeout(showToast.timer); showToast.timer = setTimeout(() => el.classList.remove('show'), 3000); }
+    function formatDate(value) { const d = new Date(`${value}T00:00:00`); return Number.isNaN(d.valueOf()) ? value : new Intl.DateTimeFormat('zh-CN',{year:'numeric',month:'long',day:'numeric'}).format(d); }
+    async function api(url, options = {}) {
+      const response = await fetch(url, options);
+      if (!response.ok) {
+        let detail = '请求失败'; try { detail = (await response.json()).detail || detail; } catch {}
+        const error = new Error(detail); error.status = response.status; throw error;
+      }
+      if (response.status === 204) return null;
+      return response.json();
     }
-  } catch { toast('网络错误'); }
-}
+    function requireAdmin() { if (state.token) return true; openModal('login-modal'); setTimeout(() => $('#admin-password').focus(), 80); return false; }
+    function clearSession() { state.token = ''; sessionStorage.removeItem('love_admin_token'); }
 
-/* ── Admin Tabs ── */
-function switchTab(tid, btn) {
-  document.querySelectorAll('.atp').forEach(c => c.classList.remove('on'));
-  document.querySelectorAll('.atab').forEach(b => b.classList.remove('on'));
-  document.getElementById(tid).classList.add('on');
-  btn.classList.add('on');
-  if (tid === 't-msg') loadAdmMsgs();
-}
+    function tick() {
+      const now = new Date();
+      $('#days-count').textContent = Math.max(0, Math.floor((now - ANNIVERSARY) / 86400000)).toLocaleString('zh-CN');
+      let next = new Date(now.getFullYear(), 11, 25);
+      if (next <= now) next = new Date(now.getFullYear() + 1, 11, 25);
+      const seconds = Math.max(0, Math.floor((next - now) / 1000));
+      $('#cd-days').textContent = Math.floor(seconds / 86400);
+      $('#cd-hours').textContent = String(Math.floor(seconds % 86400 / 3600)).padStart(2,'0');
+      $('#cd-minutes').textContent = String(Math.floor(seconds % 3600 / 60)).padStart(2,'0');
+      $('#cd-seconds').textContent = String(seconds % 60).padStart(2,'0');
+    }
 
-/* ── Admin: Add Timeline ── */
-async function addTl() {
-  const d = document.getElementById('a-date').value;
-  const t = document.getElementById('a-title').value.trim();
-  const desc = document.getElementById('a-desc').value.trim();
-  const img = document.getElementById('a-img').value.trim();
-  if (!d || !t || !desc) { toast('请填写日期、标题和描述'); return; }
-  try {
-    const r = await fetch('/api/timeline', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ password: admPwd, date: d, title: t, description: desc, image: img })
-    });
-    if (r.ok) {
-      toast('时光机节点添加成功 ✨');
-      ['a-date','a-title','a-desc','a-img'].forEach(id => { document.getElementById(id).value = ''; });
-      loadTl();
-    } else if (r.status === 401) {
-      toast('认证失效，请重新登录'); admPwd = ''; closeOv('panel-ov'); openAdminLogin();
-    } else { toast('添加失败，请重试'); }
-  } catch { toast('网络错误'); }
-}
+    async function loadTimeline() {
+      try {
+        state.timeline = await api('/api/timeline');
+        state.photos = state.timeline.filter(item => item.image).map(item => ({ src:item.image, title:item.title, date:item.date }));
+        renderTimeline(); renderGallery();
+      } catch (error) { $('#timeline-list').innerHTML = `<p class="text-center" style="color:var(--muted)">${escapeHtml(error.message)}</p>`; $('#gallery-grid').innerHTML = ''; }
+    }
+    function timelineCard(item) {
+      return `<article class="memory-card reveal">${item.image ? `<button class="block w-full border-0 p-0 bg-transparent" data-photo-src="${escapeHtml(item.image)}" data-photo-title="${escapeHtml(item.title)}"><img class="memory-photo" src="${escapeHtml(item.image)}" alt="${escapeHtml(item.title)}" loading="lazy"></button>` : ''}<div class="memory-body"><time class="memory-date" datetime="${escapeHtml(item.date)}">${escapeHtml(formatDate(item.date))}</time><h3 class="memory-title">${escapeHtml(item.title)}</h3><p class="memory-desc">${escapeHtml(item.description)}</p></div></article>`;
+    }
+    function renderTimeline() {
+      const items = [...state.timeline].sort((a,b) => a.date.localeCompare(b.date));
+      $('#timeline-list').innerHTML = items.length ? items.map((item,index) => `<div class="timeline-row">${index % 2 ? '<div class="empty"></div>' : ''}<div>${timelineCard(item)}</div>${index % 2 ? '' : '<div class="empty"></div>'}</div>`).join('') : '<p class="text-center" style="color:var(--muted)">时光机还没有记录。</p>';
+      observeReveals(); bindPhotoButtons($('#timeline-list')); refreshIcons();
+    }
+    function renderGallery() {
+      const shown = state.photos.slice(0,state.galleryLimit);
+      $('#gallery-grid').innerHTML = shown.length ? shown.map((photo,index) => `<button class="gallery-item reveal" data-gallery-index="${index}" aria-label="放大查看 ${escapeHtml(photo.title)}"><img src="${escapeHtml(photo.src)}" alt="${escapeHtml(photo.title)}" loading="lazy"><span class="gallery-label">${escapeHtml(photo.title)}</span></button>`).join('') : '<p class="col-span-full text-center" style="color:var(--muted)">暂时还没有照片。</p>';
+      $('#gallery-more').classList.toggle('hidden', state.photos.length <= state.galleryLimit);
+      $$('.gallery-item').forEach(button => button.addEventListener('click', () => openLightbox(Number(button.dataset.galleryIndex))));
+      observeReveals();
+    }
+    function bindPhotoButtons(root) { $$('[data-photo-src]',root).forEach(button => button.addEventListener('click', () => { const index = state.photos.findIndex(p => p.src === button.dataset.photoSrc); openLightbox(Math.max(0,index)); })); }
 
-/* ── Admin: Upload Photo ── */
-function prevFile(e) {
-  const file = e.target.files[0]; if (!file) return;
-  const reader = new FileReader();
-  reader.onload = ev => {
-    document.getElementById('prev-img').src = ev.target.result;
-    document.getElementById('prev-wrap').classList.remove('hidden');
-  };
-  reader.readAsDataURL(file);
-}
-async function uploadPhoto() {
-  const inp = document.getElementById('a-file');
-  if (!inp.files[0]) { toast('请先选择照片'); return; }
-  const fd = new FormData();
-  fd.append('file', inp.files[0]); fd.append('password', admPwd);
-  try {
-    const r = await fetch('/api/admin/upload', { method: 'POST', body: fd });
-    const data = await r.json();
-    if (r.ok) {
-      document.getElementById('up-res').innerHTML = `✅ 上传成功！<br>URL: <code class="bg-neutral-100 px-1.5 py-0.5 rounded text-[11px]">${data.url}</code>`;
-      toast('照片上传成功！'); inp.value = ''; document.getElementById('prev-wrap').classList.add('hidden');
-    } else { toast('上传失败：' + (data.detail || '未知错误')); }
-  } catch { toast('网络错误'); }
-}
+    async function loadWishes() {
+      try { renderWishes(await api('/api/wishlist')); }
+      catch (error) { $('#wish-list').innerHTML = `<p style="color:var(--muted)">${escapeHtml(error.message)}</p>`; }
+    }
+    function renderWishes(items) {
+      const icons = ['map-pinned','sparkles','music','cat','sunrise','castle'];
+      $('#wish-list').innerHTML = items.map((wish,index) => `<button class="wish reveal ${wish.completed ? 'done' : ''}" data-wish-id="${wish.id}"><span class="wish-icon"><i data-lucide="${wish.completed ? 'check' : icons[index % icons.length]}" class="w-5 h-5"></i></span><span class="min-w-0"><strong class="block text-[15px] ${wish.completed ? 'line-through' : ''}">${escapeHtml(wish.title)}</strong><small class="block mt-1" style="color:var(--muted)">${wish.completed ? `完成于 ${escapeHtml(wish.completed_at || '')}` : '等待我们一起完成'}</small></span></button>`).join('');
+      $$('.wish').forEach(button => button.addEventListener('click', () => toggleWish(button.dataset.wishId)));
+      refreshIcons(); observeReveals();
+    }
+    async function toggleWish(id) {
+      if (!requireAdmin()) { showToast('完成心愿需要管理员登录'); return; }
+      try { await api(`/api/wishlist/${id}/toggle`,{method:'POST',headers:authHeaders()}); await loadWishes(); }
+      catch (error) { handleAuthError(error); }
+    }
 
-/* ── Admin: Manage Messages ── */
-async function loadAdmMsgs() {
-  try {
-    const msgs = await (await fetch('/api/messages')).json();
-    const c = document.getElementById('adm-msgs');
-    if (!msgs?.length) { c.innerHTML = '<p class="text-[#6e6e73] text-sm py-4 text-center">暂无留言</p>'; return; }
-    c.innerHTML = msgs.map(m => `
-      <div id="am${m.id}" class="flex items-center justify-between gap-3 p-3.5 rounded-[14px] bg-[#fbfbfd] border border-neutral-100">
-        <div class="flex-1 min-w-0">
-          <span class="font-semibold text-[13.5px]">${m.nickname}</span>
-          <span class="text-[11.5px] text-[#6e6e73] ml-2">${(m.created_at || '').slice(0, 16)}</span>
-          <p class="text-[12.5px] text-[#6e6e73] truncate mt-0.5">${m.content}</p>
-        </div>
-        <button onclick="delMsg(${m.id})" class="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-xl hover:bg-red-50 text-[#e84857] transition-colors">
-          <i data-lucide="trash-2" class="w-4 h-4"></i>
-        </button>
-      </div>`).join('');
-    lucide.createIcons();
-  } catch { toast('加载失败'); }
-}
-async function delMsg(id) {
-  if (!confirm('确定删除这条留言吗？')) return;
-  try {
-    const r = await fetch(`/api/messages/${id}?password=${encodeURIComponent(admPwd)}`, { method: 'DELETE' });
-    if (r.ok) { document.getElementById('am' + id)?.remove(); loadMsgs(); toast('留言已删除'); }
-    else if (r.status === 401) { toast('认证失效，请重新登录'); admPwd = ''; }
-    else { toast('删除失败'); }
-  } catch { toast('网络错误'); }
-}
+    async function loadMessages() {
+      try { renderMessages(await api('/api/messages')); }
+      catch (error) { $('#message-list').innerHTML = `<p style="color:var(--muted)">${escapeHtml(error.message)}</p>`; }
+    }
+    function renderMessages(items) {
+      $('#message-list').innerHTML = items.length ? items.map(item => `<article class="message reveal"><div class="flex gap-3"><div class="avatar">${escapeHtml(item.nickname.slice(0,1))}</div><div class="min-w-0 flex-1"><div class="flex items-start justify-between gap-4"><strong class="text-sm">${escapeHtml(item.nickname)}</strong><time class="text-[11px] shrink-0" style="color:var(--muted)">${escapeHtml(String(item.created_at).slice(0,16))}</time></div><p class="text-sm leading-7 mt-2 break-words" style="color:var(--muted)">${escapeHtml(item.content)}</p></div></div></article>`).join('') : '<p style="color:var(--muted)">还没有留言，来留下第一份祝福吧。</p>';
+      observeReveals();
+    }
+    async function submitMessage(event) {
+      event.preventDefault(); const button = $('#message-submit'); button.disabled = true;
+      try {
+        await api('/api/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nickname:$('#nickname').value.trim(),content:$('#message-content').value.trim()})});
+        event.target.reset(); $('#message-count').textContent = '0'; await loadMessages(); celebrate(); showToast('祝福已经送达');
+      } catch (error) { showToast(error.message); } finally { button.disabled = false; }
+    }
 
-/* ── Toast ── */
-let toastT;
-function toast(msg) {
-  const el = document.getElementById('toast');
-  el.textContent = msg; el.classList.add('show');
-  clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove('show'), 3200);
-}
+    function celebrate() {
+      if (window.confetti) confetti({particleCount:110,spread:76,origin:{y:.7},colors:['#a86773','#d7a7af','#f3e5e7','#ffffff','#7c9b87']});
+      for (let i=0;i<10;i++) setTimeout(() => { const el=document.createElement('span'); el.className='heart-particle'; el.textContent=['♥','♡','✦'][i%3]; el.style.cssText=`left:${8+Math.random()*84}vw;top:75vh;color:${i%2?'#a86773':'#d09aa4'};font-size:${16+Math.random()*14}px`; document.body.append(el); setTimeout(()=>el.remove(),1900); },i*90);
+    }
 
-/* ── Init ── */
-loadTl(); loadWl(); loadMsgs();
+    function openModal(id) { $(`#${id}`).classList.add('open'); document.body.classList.add('modal-open'); }
+    function closeModal(id) { $(`#${id}`).classList.remove('open'); if (!$('.modal.open') && !$('#lightbox').classList.contains('open')) document.body.classList.remove('modal-open'); if (id==='admin-modal' && location.pathname==='/admin') history.replaceState({},'', '/'); }
+    async function login(event) {
+      event.preventDefault(); $('#login-error').textContent='';
+      try { const result=await api('/api/admin/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:$('#admin-password').value})}); state.token=result.token; sessionStorage.setItem('love_admin_token',state.token); event.target.reset(); closeModal('login-modal'); openAdmin(); showToast('登录成功'); }
+      catch (error) { $('#login-error').textContent=error.message; }
+    }
+    function openAdmin() { if (!state.token) { openModal('login-modal'); return; } openModal('admin-modal'); history.replaceState({},'', '/admin'); loadAdminMessages(); }
+    function handleAuthError(error) { if (error.status===401) { clearSession(); closeModal('admin-modal'); openModal('login-modal'); showToast('登录已过期，请重新登录'); } else showToast(error.message); }
+    async function logout() { try { await api('/api/admin/logout',{method:'POST',headers:authHeaders()}); } catch {} clearSession(); closeModal('admin-modal'); showToast('已退出管理后台'); }
 
-// 访问 /admin 路径时自动打开管理员弹窗
-if (window.location.pathname === '/admin') {
-  setTimeout(() => openAdminLogin(), 600);
-}
-</script>
+    async function uploadPhoto() {
+      const file=$('#photo-file').files[0]; if(!file){showToast('请先选择照片');return;} const button=$('#upload-btn'); button.disabled=true; $('#upload-status').textContent='正在上传…';
+      try { const body=new FormData(); body.append('file',file); const result=await api('/api/admin/upload',{method:'POST',headers:authHeaders(),body}); $('#timeline-image').value=result.url; $('#upload-status').textContent='上传完成，照片地址已自动填写。'; showToast('照片上传成功'); }
+      catch(error){handleAuthError(error);$('#upload-status').textContent=error.message;} finally{button.disabled=false;}
+    }
+    async function addTimeline(event) {
+      event.preventDefault();
+      const payload={date:$('#timeline-date').value,title:$('#timeline-title').value.trim(),description:$('#timeline-description').value.trim(),image:$('#timeline-image').value.trim()};
+      try { await api('/api/timeline',{method:'POST',headers:{...authHeaders(),'Content-Type':'application/json'},body:JSON.stringify(payload)}); event.target.reset(); $('#upload-preview').classList.add('hidden'); $('#upload-status').textContent=''; await loadTimeline(); showToast('新的时光已经收藏'); }
+      catch(error){handleAuthError(error);}
+    }
+    async function loadAdminMessages() {
+      if(!state.token)return;
+      try { const items=await api('/api/messages'); $('#admin-message-list').innerHTML=items.length?items.map(item=>`<div class="flex items-center gap-3 py-3 border-b" style="border-color:var(--line)"><div class="min-w-0 flex-1"><div class="text-sm font-semibold">${escapeHtml(item.nickname)}</div><div class="text-xs mt-1 truncate" style="color:var(--muted)">${escapeHtml(item.content)}</div></div><button class="icon-btn admin-delete" data-id="${item.id}" title="删除留言" aria-label="删除留言"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div>`).join(''):'<p style="color:var(--muted)">暂无留言。</p>'; $$('.admin-delete').forEach(button=>button.addEventListener('click',()=>deleteMessage(button.dataset.id))); refreshIcons(); }
+      catch(error){handleAuthError(error);}
+    }
+    async function deleteMessage(id) { if(!confirm('确定删除这条留言吗？'))return; try{await api(`/api/messages/${id}`,{method:'DELETE',headers:authHeaders()});await Promise.all([loadAdminMessages(),loadMessages()]);showToast('留言已删除');}catch(error){handleAuthError(error);} }
+    async function changePassword(event) { event.preventDefault(); try{await api('/api/admin/password',{method:'PUT',headers:{...authHeaders(),'Content-Type':'application/json'},body:JSON.stringify({current_password:$('#current-password').value,new_password:$('#new-password').value})});event.target.reset();clearSession();closeModal('admin-modal');showToast('口令已更新，请重新登录');}catch(error){handleAuthError(error);} }
+
+    function openLightbox(index) { if(!state.photos.length)return; state.lightboxIndex=(index+state.photos.length)%state.photos.length; state.zoom=1; renderLightbox(); $('#lightbox').classList.add('open'); document.body.classList.add('modal-open'); }
+    function renderLightbox() { const item=state.photos[state.lightboxIndex]; $('#lightbox-image').src=item.src; $('#lightbox-image').alt=item.title; $('#lightbox-image').style.transform=`scale(${state.zoom})`; $('#lightbox-caption').textContent=`${item.title} · ${formatDate(item.date)}`; $('#lightbox-count').textContent=`${state.lightboxIndex+1} / ${state.photos.length}`; }
+    function closeLightbox() { $('#lightbox').classList.remove('open'); document.body.classList.remove('modal-open'); }
+    function moveLightbox(delta) { state.lightboxIndex=(state.lightboxIndex+delta+state.photos.length)%state.photos.length; state.zoom=1; renderLightbox(); }
+    function setZoom(value) { state.zoom=Math.min(3,Math.max(1,value)); $('#lightbox-image').style.transform=`scale(${state.zoom})`; }
+
+    const revealObserver = new IntersectionObserver(entries => entries.forEach(entry => { if(entry.isIntersecting){entry.target.classList.add('visible');revealObserver.unobserve(entry.target);}}),{threshold:.08});
+    function observeReveals() { $$('.reveal:not(.visible)').forEach(el=>revealObserver.observe(el)); }
+    function applyTheme(theme) { document.documentElement.dataset.theme=theme; $('#theme-btn').innerHTML=`<i data-lucide="${theme==='dark'?'sun':'moon'}" class="w-4 h-4"></i>`; refreshIcons(); }
+
+    $('#message-form').addEventListener('submit',submitMessage); $('#message-content').addEventListener('input',e=>$('#message-count').textContent=e.target.value.length);
+    $('#login-form').addEventListener('submit',login); $('#admin-btn').addEventListener('click',()=>state.token?openAdmin():openModal('login-modal')); $('#logout-btn').addEventListener('click',logout);
+    $$('.modal-close').forEach(button=>button.addEventListener('click',()=>closeModal(button.dataset.close))); $$('.modal').forEach(modal=>modal.addEventListener('click',e=>{if(e.target===modal)closeModal(modal.id);}));
+    $$('.tab').forEach(tab=>tab.addEventListener('click',()=>{$$('.tab').forEach(x=>x.classList.remove('active'));$$('.tab-panel').forEach(x=>x.classList.remove('active'));tab.classList.add('active');$(`#${tab.dataset.tab}`).classList.add('active');if(tab.dataset.tab==='messages-panel')loadAdminMessages();}));
+    $('#photo-file').addEventListener('change',event=>{const file=event.target.files[0];if(!file)return;const preview=$('#upload-preview');preview.src=URL.createObjectURL(file);preview.classList.remove('hidden');});
+    $('#upload-btn').addEventListener('click',uploadPhoto); $('#timeline-form').addEventListener('submit',addTimeline); $('#password-form').addEventListener('submit',changePassword);
+    $('#gallery-more').addEventListener('click',()=>{state.galleryLimit=state.photos.length;renderGallery();});
+    $('#lightbox-close').addEventListener('click',closeLightbox); $('#lightbox-prev').addEventListener('click',()=>moveLightbox(-1)); $('#lightbox-next').addEventListener('click',()=>moveLightbox(1)); $('#zoom-in').addEventListener('click',()=>setZoom(state.zoom+.25)); $('#zoom-out').addEventListener('click',()=>setZoom(state.zoom-.25));
+    $('#lightbox-stage').addEventListener('wheel',event=>{event.preventDefault();setZoom(state.zoom+(event.deltaY<0?.2:-.2));},{passive:false});
+    $('#music-btn').addEventListener('click',async()=>{const audio=$('#bgm');if(audio.paused){try{await audio.play();$('#music-btn').innerHTML='<i data-lucide="pause" class="w-4 h-4"></i>';showToast('正在播放 Merry Christmas Mr. Lawrence');}catch{showToast('浏览器阻止了自动播放');}}else{audio.pause();$('#music-btn').innerHTML='<i data-lucide="music-2" class="w-4 h-4"></i>';}refreshIcons();});
+    $('#theme-btn').addEventListener('click',()=>{const next=document.documentElement.dataset.theme==='dark'?'light':'dark';localStorage.setItem('love_theme',next);applyTheme(next);});
+    $('#menu-btn').addEventListener('click',()=>$('#mobile-menu').classList.toggle('open')); $$('#mobile-menu a').forEach(a=>a.addEventListener('click',()=>$('#mobile-menu').classList.remove('open')));
+    document.addEventListener('keydown',event=>{if(event.key==='Escape'){closeLightbox();$$('.modal.open').forEach(modal=>closeModal(modal.id));}if($('#lightbox').classList.contains('open')){if(event.key==='ArrowLeft')moveLightbox(-1);if(event.key==='ArrowRight')moveLightbox(1);if(event.key==='+')setZoom(state.zoom+.25);if(event.key==='-')setZoom(state.zoom-.25);}});
+
+    const savedTheme=localStorage.getItem('love_theme')||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light'); applyTheme(savedTheme); refreshIcons(); observeReveals(); tick(); setInterval(tick,1000); loadTimeline(); loadWishes(); loadMessages();
+    if(location.pathname==='/admin') setTimeout(()=>state.token?openAdmin():openModal('login-modal'),150);
+  </script>
 </body>
 </html>
