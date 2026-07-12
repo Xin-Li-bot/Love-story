@@ -219,7 +219,39 @@
   </main>
 
   <footer class="py-12 border-t text-center" style="border-color:var(--line);color:var(--muted)">
-    <div class="container"><p class="font-semibold" style="color:var(--text)">李欣 & 王雅婷</p><p class="text-xs mt-2">始于圣诞节…895 tokens truncated…ion>
+    <div class="container"><p class="font-semibold" style="color:var(--text)">李欣 & 王雅婷</p><p class="text-xs mt-2">始于圣诞节，故事仍在继续。</p></div>
+  </footer>
+
+  <div id="login-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="login-title">
+    <div class="dialog max-w-[420px]">
+      <div class="dialog-head"><div><div class="text-xs font-semibold" style="color:var(--rose)">PRIVATE</div><h2 id="login-title" class="text-xl font-bold mt-1">秘密管理后台</h2></div><button class="icon-btn modal-close" data-close="login-modal" aria-label="关闭"><i data-lucide="x" class="w-5 h-5"></i></button></div>
+      <form id="login-form" class="dialog-body">
+        <label class="label" for="admin-password">管理员口令</label>
+        <input id="admin-password" type="password" class="field" autocomplete="current-password" maxlength="128" required>
+        <p id="login-error" class="text-[12px] text-red-500 min-h-5 mt-2"></p>
+        <button class="primary w-full mt-2" type="submit"><i data-lucide="log-in" class="w-4 h-4"></i><span>进入后台</span></button>
+      </form>
+    </div>
+  </div>
+
+  <div id="admin-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="admin-title">
+    <div class="dialog dialog-wide">
+      <div class="dialog-head"><div><div class="text-xs font-semibold" style="color:var(--rose)">ADMIN</div><h2 id="admin-title" class="text-xl font-bold mt-1">秘密管理后台</h2></div><div class="flex gap-1"><button id="logout-btn" class="icon-btn" title="退出登录" aria-label="退出登录"><i data-lucide="log-out" class="w-4 h-4"></i></button><button class="icon-btn modal-close" data-close="admin-modal" aria-label="关闭"><i data-lucide="x" class="w-5 h-5"></i></button></div></div>
+      <div class="tabs" role="tablist"><button class="tab active" data-tab="timeline-panel">添加时光</button><button class="tab" data-tab="messages-panel">管理留言</button><button class="tab" data-tab="security-panel">安全设置</button></div>
+      <div class="dialog-body">
+        <section id="timeline-panel" class="tab-panel active">
+          <form id="timeline-form">
+            <div class="grid md:grid-cols-2 gap-4"><div><label class="label" for="timeline-date">日期</label><input id="timeline-date" type="date" class="field" required></div><div><label class="label" for="timeline-title">标题</label><input id="timeline-title" class="field" maxlength="80" required></div></div>
+            <div class="mt-4"><label class="label" for="timeline-description">描述</label><textarea id="timeline-description" class="field" maxlength="1000" required></textarea></div>
+            <div class="mt-4"><label class="label" for="timeline-image">照片地址或 Base64</label><input id="timeline-image" class="field" placeholder="上传照片后自动填写，也可粘贴 Base64"></div>
+            <div class="mt-4 p-4 border rounded-lg" style="border-color:var(--line);background:var(--surface)">
+              <div class="flex flex-wrap items-center gap-3"><input id="photo-file" type="file" accept="image/jpeg,image/png,image/webp,image/gif" class="text-xs max-w-full"><button id="upload-btn" class="secondary" type="button"><i data-lucide="upload" class="w-4 h-4"></i><span>上传照片</span></button></div>
+              <img id="upload-preview" class="hidden mt-4 w-full max-h-56 object-contain rounded-lg" alt="照片预览">
+              <p id="upload-status" class="text-xs mt-2" style="color:var(--muted)"></p>
+            </div>
+            <button class="primary w-full mt-5" type="submit"><i data-lucide="plus" class="w-4 h-4"></i><span>加入时光机</span></button>
+          </form>
+        </section>
         <section id="messages-panel" class="tab-panel"><div id="admin-message-list"><div class="skeleton"></div></div></section>
         <section id="security-panel" class="tab-panel">
           <form id="password-form" class="max-w-md">
@@ -247,6 +279,7 @@
     const state = { timeline: [], photos: [], galleryLimit: 12, lightboxIndex: 0, zoom: 1, token: sessionStorage.getItem('love_admin_token') || '' };
     const $ = (selector, root = document) => root.querySelector(selector);
     const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
+    const bind = (selector, event, handler, options) => $(selector)?.addEventListener(event, handler, options);
     const escapeHtml = value => String(value ?? '').replace(/[&<>'"]/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]));
     const authHeaders = () => state.token ? { Authorization: `Bearer ${state.token}` } : {};
 
@@ -378,18 +411,18 @@
     function observeReveals() { $$('.reveal:not(.visible)').forEach(el=>revealObserver.observe(el)); }
     function applyTheme(theme) { document.documentElement.dataset.theme=theme; $('#theme-btn').innerHTML=`<i data-lucide="${theme==='dark'?'sun':'moon'}" class="w-4 h-4"></i>`; refreshIcons(); }
 
-    $('#message-form').addEventListener('submit',submitMessage); $('#message-content').addEventListener('input',e=>$('#message-count').textContent=e.target.value.length);
-    $('#login-form').addEventListener('submit',login); $('#admin-btn').addEventListener('click',()=>state.token?openAdmin():openModal('login-modal')); $('#logout-btn').addEventListener('click',logout);
+    bind('#message-form','submit',submitMessage); bind('#message-content','input',e=>$('#message-count').textContent=e.target.value.length);
+    bind('#login-form','submit',login); bind('#admin-btn','click',()=>state.token?openAdmin():openModal('login-modal')); bind('#logout-btn','click',logout);
     $$('.modal-close').forEach(button=>button.addEventListener('click',()=>closeModal(button.dataset.close))); $$('.modal').forEach(modal=>modal.addEventListener('click',e=>{if(e.target===modal)closeModal(modal.id);}));
     $$('.tab').forEach(tab=>tab.addEventListener('click',()=>{$$('.tab').forEach(x=>x.classList.remove('active'));$$('.tab-panel').forEach(x=>x.classList.remove('active'));tab.classList.add('active');$(`#${tab.dataset.tab}`).classList.add('active');if(tab.dataset.tab==='messages-panel')loadAdminMessages();}));
-    $('#photo-file').addEventListener('change',event=>{const file=event.target.files[0];if(!file)return;const preview=$('#upload-preview');preview.src=URL.createObjectURL(file);preview.classList.remove('hidden');});
-    $('#upload-btn').addEventListener('click',uploadPhoto); $('#timeline-form').addEventListener('submit',addTimeline); $('#password-form').addEventListener('submit',changePassword);
-    $('#gallery-more').addEventListener('click',()=>{state.galleryLimit=state.photos.length;renderGallery();});
-    $('#lightbox-close').addEventListener('click',closeLightbox); $('#lightbox-prev').addEventListener('click',()=>moveLightbox(-1)); $('#lightbox-next').addEventListener('click',()=>moveLightbox(1)); $('#zoom-in').addEventListener('click',()=>setZoom(state.zoom+.25)); $('#zoom-out').addEventListener('click',()=>setZoom(state.zoom-.25));
-    $('#lightbox-stage').addEventListener('wheel',event=>{event.preventDefault();setZoom(state.zoom+(event.deltaY<0?.2:-.2));},{passive:false});
-    $('#music-btn').addEventListener('click',async()=>{const audio=$('#bgm');if(audio.paused){try{await audio.play();$('#music-btn').innerHTML='<i data-lucide="pause" class="w-4 h-4"></i>';showToast('正在播放 Merry Christmas Mr. Lawrence');}catch{showToast('浏览器阻止了自动播放');}}else{audio.pause();$('#music-btn').innerHTML='<i data-lucide="music-2" class="w-4 h-4"></i>';}refreshIcons();});
-    $('#theme-btn').addEventListener('click',()=>{const next=document.documentElement.dataset.theme==='dark'?'light':'dark';localStorage.setItem('love_theme',next);applyTheme(next);});
-    $('#menu-btn').addEventListener('click',()=>$('#mobile-menu').classList.toggle('open')); $$('#mobile-menu a').forEach(a=>a.addEventListener('click',()=>$('#mobile-menu').classList.remove('open')));
+    bind('#photo-file','change',event=>{const file=event.target.files[0];if(!file)return;const preview=$('#upload-preview');preview.src=URL.createObjectURL(file);preview.classList.remove('hidden');});
+    bind('#upload-btn','click',uploadPhoto); bind('#timeline-form','submit',addTimeline); bind('#password-form','submit',changePassword);
+    bind('#gallery-more','click',()=>{state.galleryLimit=state.photos.length;renderGallery();});
+    bind('#lightbox-close','click',closeLightbox); bind('#lightbox-prev','click',()=>moveLightbox(-1)); bind('#lightbox-next','click',()=>moveLightbox(1)); bind('#zoom-in','click',()=>setZoom(state.zoom+.25)); bind('#zoom-out','click',()=>setZoom(state.zoom-.25));
+    bind('#lightbox-stage','wheel',event=>{event.preventDefault();setZoom(state.zoom+(event.deltaY<0?.2:-.2));},{passive:false});
+    bind('#music-btn','click',async()=>{const audio=$('#bgm');if(audio.paused){try{await audio.play();$('#music-btn').innerHTML='<i data-lucide="pause" class="w-4 h-4"></i>';showToast('正在播放 Merry Christmas Mr. Lawrence');}catch{showToast('浏览器阻止了自动播放');}}else{audio.pause();$('#music-btn').innerHTML='<i data-lucide="music-2" class="w-4 h-4"></i>';}refreshIcons();});
+    bind('#theme-btn','click',()=>{const next=document.documentElement.dataset.theme==='dark'?'light':'dark';localStorage.setItem('love_theme',next);applyTheme(next);});
+    bind('#menu-btn','click',()=>$('#mobile-menu').classList.toggle('open')); $$('#mobile-menu a').forEach(a=>a.addEventListener('click',()=>$('#mobile-menu').classList.remove('open')));
     document.addEventListener('keydown',event=>{if(event.key==='Escape'){closeLightbox();$$('.modal.open').forEach(modal=>closeModal(modal.id));}if($('#lightbox').classList.contains('open')){if(event.key==='ArrowLeft')moveLightbox(-1);if(event.key==='ArrowRight')moveLightbox(1);if(event.key==='+')setZoom(state.zoom+.25);if(event.key==='-')setZoom(state.zoom-.25);}});
 
     const savedTheme=localStorage.getItem('love_theme')||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light'); applyTheme(savedTheme); refreshIcons(); observeReveals(); tick(); setInterval(tick,1000); loadTimeline(); loadWishes(); loadMessages();
