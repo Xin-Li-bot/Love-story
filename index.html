@@ -367,6 +367,20 @@
       transform: scale(1.055);
     }
 
+    .memory-photo-note {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      margin-top: 16px;
+      padding: 7px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--faint);
+      background: var(--paper-soft);
+      font-size: 11px;
+      line-height: 1;
+    }
+
     .timeline-card-body {
       padding: 28px 30px 31px;
     }
@@ -1265,7 +1279,7 @@
             始于 2022 年 12 月 25 日
           </div>
           <h1 id="hero-heading" class="hero-title font-sans tracking-tight font-bold">李欣<br>& 王雅婷</h1>
-          <p class="hero-copy">世界很大，而我们幸运地在彼此身边。这里收藏的不是完美生活，而是每一次真实相伴。</p>
+          <p class="hero-copy">人海辽阔，所幸我们在同一段时光里相遇。这里不记录完美，只珍藏每一次认真靠近的瞬间。</p>
           <a href="#days" class="inline-flex items-center gap-2 mt-9 text-[13px] font-semibold text-white no-underline group">
             查看我们的纪念日
             <i data-lucide="arrow-down" class="w-4 h-4 group-hover:translate-y-1 transition-transform"></i>
@@ -1284,13 +1298,13 @@
               <div id="days-count" class="days-number">--</div>
               <div class="pb-2 md:pb-4 text-[22px] md:text-[28px] font-semibold" style="color:var(--rose)">天</div>
             </div>
-            <p class="mt-7 mb-0 text-[13px] leading-7" style="color:var(--muted)">从那个圣诞节开始，每一天都成为了我们共同故事里不可替代的一页。</p>
+            <p class="mt-7 mb-0 text-[13px] leading-7" style="color:var(--muted)">从那个有冬意的圣诞节起，平凡的日子因为有彼此，慢慢长成了故事。</p>
           </div>
           <div class="dashboard-side">
             <div class="flex items-center justify-between gap-3">
               <div>
-                <p class="m-0 text-[13px] font-semibold" style="color:var(--ink)">距离下一个周年</p>
-                <p class="m-0 mt-1 text-[11px]" style="color:var(--faint)">每一秒都在靠近新的纪念日</p>
+                <p class="m-0 text-[13px] font-semibold" style="color:var(--ink)">离下一次纪念日还有</p>
+                <p class="m-0 mt-1 text-[11px]" style="color:var(--faint)">下一次相拥，又近了一秒</p>
               </div>
               <i data-lucide="calendar-heart" class="w-5 h-5 shrink-0" style="color:var(--rose)"></i>
             </div>
@@ -1311,7 +1325,7 @@
         <header class="section-header reveal">
           <div class="section-kicker">Our Story</div>
           <h2 class="section-title font-sans tracking-tight font-bold text-neutral-900">恋爱时光机</h2>
-          <p class="section-description text-neutral-500 font-normal">沿着时间向前走，每一个普通日子都因为共同经历而变得值得纪念。</p>
+          <p class="section-description text-neutral-500 font-normal">把走过的日子放回时间里，每一次回望，都能看见我们当时认真相爱的样子。</p>
         </header>
         <div id="timeline-list" class="timeline" aria-live="polite"><div class="skeleton"></div></div>
       </div>
@@ -1322,7 +1336,7 @@
         <header class="section-header reveal">
           <div class="section-kicker">Photo Gallery</div>
           <h2 class="section-title font-sans tracking-tight font-bold text-neutral-900">我们的相册</h2>
-          <p class="section-description text-neutral-500 font-normal">那些没有刻意摆拍的瞬间，往往最接近幸福原本的样子。</p>
+          <p class="section-description text-neutral-500 font-normal">不必刻意摆拍。那些笑着、赶路、发呆的瞬间，已经替我们把爱说得很清楚。</p>
         </header>
         <div id="gallery-grid" class="gallery-grid" aria-live="polite"><div class="skeleton col-span-full"></div></div>
         <div class="mt-10 text-center">
@@ -1336,7 +1350,7 @@
         <header class="section-header reveal">
           <div class="section-kicker">Future With You</div>
           <h2 class="section-title font-sans tracking-tight font-bold text-neutral-900">恋爱心愿单</h2>
-          <p class="section-description text-neutral-500 font-normal">把未来拆成一件件具体的小事，然后和你一起，慢慢完成。</p>
+          <p class="section-description text-neutral-500 font-normal">把想去的远方和想做的小事写下来，等它们一件件与彼此抵达。</p>
         </header>
         <div id="wishlist-grid" class="wishlist-grid" aria-live="polite"><div class="skeleton"></div><div class="skeleton"></div></div>
       </div>
@@ -1347,7 +1361,7 @@
         <header class="section-header reveal">
           <div class="section-kicker">Leave Some Love</div>
           <h2 class="section-title font-sans tracking-tight font-bold text-neutral-900">留言板</h2>
-          <p class="section-description text-neutral-500 font-normal">一段真诚的祝福，会在这里被温柔地收藏很久。</p>
+          <p class="section-description text-neutral-500 font-normal">愿每一句祝福，都像一盏小灯，照亮我们继续走向彼此的路。</p>
         </header>
 
         <div class="message-layout">
@@ -1355,8 +1369,8 @@
             <div class="flex items-center gap-3 mb-6">
               <span class="w-11 h-11 grid place-items-center rounded-full" style="color:var(--rose);background:var(--rose-soft)"><i data-lucide="pen-line" class="w-5 h-5"></i></span>
               <div>
-                <h3 class="m-0 text-[18px] font-bold">写下祝福</h3>
-                <p class="m-0 mt-1 text-[11px]" style="color:var(--faint)">你的留言会出现在右侧</p>
+                <h3 class="m-0 text-[18px] font-bold">留一封小信</h3>
+                <p class="m-0 mt-1 text-[11px]" style="color:var(--faint)">让你的祝福在这里慢慢停靠</p>
               </div>
             </div>
 
@@ -1367,7 +1381,7 @@
 
             <div class="input-shell mt-3">
               <label for="message-content">想说的话</label>
-              <textarea id="message-content" maxlength="500" placeholder="写下一段温柔的祝福…" required></textarea>
+              <textarea id="message-content" maxlength="500" placeholder="写下一段想对我们说的话…" required></textarea>
               <div class="mt-2 text-right text-[10px]" style="color:var(--faint)"><span id="message-character-count">0</span> / 500</div>
             </div>
 
@@ -1383,7 +1397,7 @@
   <footer class="py-16 border-t text-center" style="border-color:var(--line);color:var(--muted)">
     <div class="site-container">
       <p class="m-0 text-[15px] font-semibold" style="color:var(--ink)">李欣 & 王雅婷</p>
-      <p class="m-0 mt-2 text-[11px]">始于圣诞节，故事仍在继续。</p>
+      <p class="m-0 mt-2 text-[11px]">故事始于圣诞，仍在被每个平凡日子温柔续写。</p>
     </div>
   </footer>
 
@@ -1395,7 +1409,7 @@
       <div class="flex items-center gap-2">
         <div class="min-w-0">
           <p class="m-0 max-w-[170px] truncate text-[11px] font-semibold" style="color:var(--ink)">Merry Christmas Mr. Lawrence</p>
-          <p id="music-state" class="m-0 mt-1 text-[9px]" style="color:var(--faint)">点击唱片播放</p>
+          <p id="music-state" class="m-0 mt-1 text-[9px]" style="color:var(--faint)">轻触唱片，让回忆慢慢响起</p>
         </div>
         <div class="music-wave" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
       </div>
@@ -1613,6 +1627,11 @@
         <button class="timeline-image-button" type="button" data-photo-src="${escapeHtml(item.image)}" aria-label="放大查看 ${escapeHtml(item.title)}">
           <img class="timeline-image" src="${escapeHtml(item.image)}" alt="${escapeHtml(item.title)}" loading="lazy">
         </button>` : '';
+      const photoNote = item.image ? '' : `
+        <div class="memory-photo-note" role="note" aria-label="这段回忆暂未收录照片">
+          <i data-lucide="image-plus" class="w-3.5 h-3.5"></i>
+          <span>影像待补充</span>
+        </div>`;
 
       return `
         <article class="timeline-card reveal rounded-3xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] hover:-translate-y-1 hover:shadow-[0_12px_30px_rgb(0,0,0,0.08)] transition-all duration-500 ease-out">
@@ -1621,6 +1640,7 @@
             <time class="timeline-date" datetime="${escapeHtml(item.date)}"><i data-lucide="calendar-heart" class="w-3.5 h-3.5"></i>${escapeHtml(formatDate(item.date))}</time>
             <h3 class="timeline-title">${escapeHtml(item.title)}</h3>
             <p class="timeline-copy">${escapeHtml(item.description)}</p>
+            ${photoNote}
           </div>
         </article>`;
     }
