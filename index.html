@@ -895,6 +895,39 @@
       display: block;
     }
 
+    .admin-timeline-list {
+      display: grid;
+      gap: 10px;
+      max-height: 360px;
+      overflow: auto;
+    }
+
+    .admin-timeline-row {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--paper-soft);
+    }
+
+    .admin-timeline-thumb {
+      width: 48px;
+      height: 48px;
+      flex: 0 0 auto;
+      border-radius: 12px;
+      object-fit: cover;
+      background: var(--paper);
+    }
+
+    .admin-timeline-empty-thumb {
+      display: grid;
+      place-items: center;
+      color: var(--faint);
+      border: 1px dashed var(--line);
+    }
+
     .lightbox {
       position: fixed;
       inset: 0;
@@ -1442,7 +1475,7 @@
       </div>
 
       <div class="tabs" role="tablist">
-        <button class="tab-button active" data-tab="admin-timeline-panel" type="button">添加时光</button>
+        <button class="tab-button active" data-tab="admin-timeline-panel" type="button">管理时光</button>
         <button class="tab-button" data-tab="admin-messages-panel" type="button">管理留言</button>
         <button class="tab-button" data-tab="admin-security-panel" type="button">安全设置</button>
       </div>
@@ -1450,6 +1483,14 @@
       <div class="dialog-body">
         <section id="admin-timeline-panel" class="tab-panel active">
           <form id="timeline-form">
+            <input id="editing-timeline-id" type="hidden">
+            <div class="flex items-center justify-between gap-4 mb-5">
+              <div>
+                <h3 id="timeline-form-heading" class="m-0 text-[17px] font-bold">添加一段新时光</h3>
+                <p id="timeline-form-hint" class="m-0 mt-1 text-[11px]" style="color:var(--faint)">选择照片后，保存时会自动上传并关联到这条记录。</p>
+              </div>
+              <button id="cancel-timeline-edit-button" class="secondary-button hidden" type="button">取消编辑</button>
+            </div>
             <div class="grid md:grid-cols-2 gap-4">
               <div><label class="field-label" for="timeline-date">日期</label><input id="timeline-date" type="date" class="field" required></div>
               <div><label class="field-label" for="timeline-title">标题</label><input id="timeline-title" class="field" maxlength="80" required></div>
@@ -1464,8 +1505,16 @@
               <img id="upload-preview" class="hidden mt-4 w-full max-h-60 object-contain rounded-[16px]" alt="照片预览">
               <p id="upload-status" class="m-0 mt-2 text-[11px]" style="color:var(--muted)"></p>
             </div>
-            <button class="primary-button w-full mt-5" type="submit"><i data-lucide="plus" class="w-4 h-4"></i><span>加入时光机</span></button>
+            <button id="timeline-submit-button" class="primary-button w-full mt-5" type="submit"><i data-lucide="plus" class="w-4 h-4"></i><span>加入时光机</span></button>
           </form>
+
+          <div class="mt-9 pt-7 border-t" style="border-color:var(--line)">
+            <div class="flex items-center justify-between gap-3 mb-4">
+              <h3 class="m-0 text-[16px] font-bold">已有时光</h3>
+              <span id="admin-timeline-count" class="text-[11px]" style="color:var(--faint)"></span>
+            </div>
+            <div id="admin-timeline-list" class="admin-timeline-list"><div class="skeleton"></div></div>
+          </div>
         </section>
 
         <section id="admin-messages-panel" class="tab-panel">
@@ -1533,11 +1582,13 @@
     async function apiRequest(url, options = {}) {
       const response = await fetch(url, options);
       if (!response.ok) {
-        let detail = '请求失败，请稍后重试';
+        let detail = `请求失败（${response.status}）`;
         try {
           const payload = await response.json();
           detail = payload.detail || detail;
-        } catch {}
+        } catch {
+          if (response.status >= 500) detail = '服务器暂时无法处理请求，请稍后重试';
+        }
         const error = new Error(detail);
         error.status = response.status;
         throw error;
@@ -1971,6 +2022,7 @@
       openModal('admin-modal');
       history.replaceState({}, '', '/admin');
       loadAdminMessages();
+      loadAdminTimeline();
     }
 
     async function logoutAdmin() {
@@ -1982,11 +2034,22 @@
       showToast('已经退出管理后台');
     }
 
-    async function uploadPhoto() {
+    function setTimelinePreview(source = '') {
+      const preview = $('#upload-preview');
+      if (!source) {
+        preview.removeAttribute('src');
+        preview.classList.add('hidden');
+        return;
+      }
+      preview.src = source;
+      preview.classList.remove('hidden');
+    }
+
+    async function uploadPhoto({ silent = false } = {}) {
       const file = $('#photo-file').files[0];
       if (!file) {
-        showToast('请先选择一张照片');
-        return;
+        if (!silent) showToast('请先选择一张照片');
+        return '';
       }
 
       const button = $('#upload-button');
@@ -2002,36 +2065,132 @@
           body: formData
         });
         $('#timeline-image').value = result.url;
+        $('#photo-file').value = '';
+        setTimelinePreview(result.url);
         $('#upload-status').textContent = '照片上传完成，地址已自动填写。';
-        showToast('照片上传成功');
+        if (!silent) showToast('照片上传成功');
+        return result.url;
       } catch (error) {
         $('#upload-status').textContent = error.message;
-        handleAdminError(error);
+        if (!silent) handleAdminError(error);
+        throw error;
       } finally {
         button.disabled = false;
       }
     }
 
+    function resetTimelineForm() {
+      $('#timeline-form').reset();
+      $('#editing-timeline-id').value = '';
+      $('#timeline-form-heading').textContent = '添加一段新时光';
+      $('#timeline-form-hint').textContent = '选择照片后，保存时会自动上传并关联到这条记录。';
+      $('#timeline-submit-button').innerHTML = '<i data-lucide="plus" class="w-4 h-4"></i><span>加入时光机</span>';
+      $('#cancel-timeline-edit-button').classList.add('hidden');
+      $('#upload-status').textContent = '';
+      setTimelinePreview();
+      refreshIcons();
+    }
+
     async function addTimelineEntry(event) {
       event.preventDefault();
-      const payload = {
-        date: $('#timeline-date').value,
-        title: $('#timeline-title').value.trim(),
-        description: $('#timeline-description').value.trim(),
-        image: $('#timeline-image').value.trim()
-      };
+      const editId = $('#editing-timeline-id').value;
+      const submitButton = $('#timeline-submit-button');
+      submitButton.disabled = true;
 
       try {
-        await apiRequest('/api/timeline', {
-          method: 'POST',
+        let image = $('#timeline-image').value.trim();
+        if ($('#photo-file').files[0]) image = await uploadPhoto({ silent: true });
+        const payload = {
+          date: $('#timeline-date').value,
+          title: $('#timeline-title').value.trim(),
+          description: $('#timeline-description').value.trim(),
+          image
+        };
+        await apiRequest(editId ? `/api/admin/timeline/${encodeURIComponent(editId)}` : '/api/timeline', {
+          method: editId ? 'PUT' : 'POST',
           headers: { ...adminHeaders(), 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
         });
-        event.target.reset();
-        $('#upload-preview').classList.add('hidden');
-        $('#upload-status').textContent = '';
+        resetTimelineForm();
         await loadTimeline();
-        showToast('新的回忆已经加入时光机');
+        await loadAdminTimeline();
+        showToast(editId ? '这段时光已经更新' : '新的回忆已经加入时光机');
+      } catch (error) {
+        handleAdminError(error);
+      } finally {
+        submitButton.disabled = false;
+      }
+    }
+
+    async function loadAdminTimeline() {
+      if (!state.adminToken) return;
+      try {
+        const timeline = await apiRequest('/api/timeline');
+        state.timeline = timeline;
+        const container = $('#admin-timeline-list');
+        $('#admin-timeline-count').textContent = `${timeline.length} 条记录`;
+        container.innerHTML = timeline.length ? [...timeline].sort((a, b) => b.date.localeCompare(a.date)).map(item => {
+          const thumbnail = item.image
+            ? `<img class="admin-timeline-thumb" src="${escapeHtml(item.image)}" alt="${escapeHtml(item.title)}">`
+            : '<span class="admin-timeline-thumb admin-timeline-empty-thumb"><i data-lucide="image-off" class="w-4 h-4"></i></span>';
+          return `<div class="admin-timeline-row">
+            ${thumbnail}
+            <div class="min-w-0 flex-1">
+              <div class="truncate text-[13px] font-semibold">${escapeHtml(item.title)}</div>
+              <div class="mt-1 text-[11px]" style="color:var(--muted)">${escapeHtml(formatDate(item.date))}${item.image ? '' : ' · 未附照片'}</div>
+            </div>
+            <div class="flex items-center gap-1">
+              <button class="icon-button admin-timeline-edit-button" type="button" data-timeline-id="${escapeHtml(item.id)}" title="编辑时光" aria-label="编辑 ${escapeHtml(item.title)}"><i data-lucide="pencil" class="w-4 h-4"></i></button>
+              <button class="icon-button admin-timeline-delete-button" type="button" data-timeline-id="${escapeHtml(item.id)}" title="删除时光" aria-label="删除 ${escapeHtml(item.title)}"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+            </div>
+          </div>`;
+        }).join('') : '<p class="text-[13px]" style="color:var(--muted)">还没有时光记录。</p>';
+        $$('.admin-timeline-edit-button', container).forEach(button => {
+          button.addEventListener('click', () => startTimelineEdit(button.dataset.timelineId));
+        });
+        $$('.admin-timeline-delete-button', container).forEach(button => {
+          button.addEventListener('click', () => deleteTimeline(button.dataset.timelineId));
+        });
+        refreshIcons();
+      } catch (error) {
+        handleAdminError(error);
+      }
+    }
+
+    function startTimelineEdit(timelineId) {
+      const item = state.timeline.find(entry => entry.id === timelineId);
+      if (!item) {
+        showToast('未找到这条时光记录，请刷新后重试');
+        return;
+      }
+      $('#editing-timeline-id').value = item.id;
+      $('#timeline-date').value = item.date;
+      $('#timeline-title').value = item.title;
+      $('#timeline-description').value = item.description;
+      $('#timeline-image').value = item.image || '';
+      $('#photo-file').value = '';
+      $('#timeline-form-heading').textContent = '编辑这段时光';
+      $('#timeline-form-hint').textContent = '保留原图无需重新选择照片；选择新照片后会替换原图。';
+      $('#timeline-submit-button').innerHTML = '<i data-lucide="save" class="w-4 h-4"></i><span>保存修改</span>';
+      $('#cancel-timeline-edit-button').classList.remove('hidden');
+      $('#upload-status').textContent = item.image ? '当前已关联照片。' : '当前未关联照片。';
+      setTimelinePreview(item.image || '');
+      refreshIcons();
+      $('#timeline-form').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    async function deleteTimeline(timelineId) {
+      const item = state.timeline.find(entry => entry.id === timelineId);
+      if (!item || !confirm(`确定删除“${item.title}”吗？此操作无法恢复。`)) return;
+      try {
+        await apiRequest(`/api/admin/timeline/${encodeURIComponent(timelineId)}`, {
+          method: 'DELETE',
+          headers: adminHeaders()
+        });
+        if ($('#editing-timeline-id').value === timelineId) resetTimelineForm();
+        await loadTimeline();
+        await loadAdminTimeline();
+        showToast('这段时光已经删除');
       } catch (error) {
         handleAdminError(error);
       }
@@ -2120,14 +2279,20 @@
       bind('#logout-button', 'click', logoutAdmin);
       bind('#upload-button', 'click', uploadPhoto);
       bind('#timeline-form', 'submit', addTimelineEntry);
+      bind('#cancel-timeline-edit-button', 'click', resetTimelineForm);
       bind('#password-form', 'submit', changeAdminPassword);
 
       bind('#photo-file', 'change', event => {
         const file = event.target.files[0];
         if (!file) return;
-        const preview = $('#upload-preview');
-        preview.src = URL.createObjectURL(file);
-        preview.classList.remove('hidden');
+        setTimelinePreview(URL.createObjectURL(file));
+        $('#upload-status').textContent = '将于保存时自动上传这张照片。';
+      });
+
+      bind('#timeline-image', 'change', event => setTimelinePreview(event.target.value.trim()));
+      bind('#upload-preview', 'error', () => {
+        $('#upload-preview').classList.add('hidden');
+        $('#upload-status').textContent = '这张照片无法预览，请检查地址或重新选择图片。';
       });
 
       $$('.modal-close-button').forEach(button => {
@@ -2146,6 +2311,7 @@
           $$('.tab-panel').forEach(panel => panel.classList.remove('active'));
           button.classList.add('active');
           $(`#${button.dataset.tab}`).classList.add('active');
+          if (button.dataset.tab === 'admin-timeline-panel') loadAdminTimeline();
           if (button.dataset.tab === 'admin-messages-panel') loadAdminMessages();
         });
       });

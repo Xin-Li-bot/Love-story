@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import hashlib
 import hmac
 import json
@@ -177,7 +179,7 @@ class PasswordChange(BaseModel):
     new_password: str = Field(min_length=8, max_length=128)
 
 
-class TimelineCreate(BaseModel):
+class TimelinePayload(BaseModel):
     date: str
     title: str = Field(min_length=1, max_length=80)
     description: str = Field(min_length=1, max_length=1000)
@@ -192,7 +194,10 @@ class TimelineCreate(BaseModel):
     @field_validator("title", "description")
     @classmethod
     def clean_text(cls, value: str) -> str:
-        return value.strip()
+        value = value.strip()
+        if not value:
+            raise ValueError("内容不能为空")
+        return value
 
     @field_validator("image")
     @classmethod
@@ -204,6 +209,14 @@ class TimelineCreate(BaseModel):
         if not allowed:
             raise ValueError("图片必须来自本站或使用 Base64 data URL")
         return value
+
+
+class TimelineCreate(TimelinePayload):
+    pass
+
+
+class TimelineUpdate(TimelinePayload):
+    pass
 
 
 def token_hash(token: str) -> str:
@@ -286,6 +299,32 @@ def add_timeline(item: TimelineCreate, _: Admin):
         items.sort(key=lambda row: row.get("date", ""))
         write_timeline(items)
     return record
+
+
+@app.put("/api/admin/timeline/{timeline_id}")
+def update_timeline(timeline_id: str, item: TimelineUpdate, _: Admin):
+    with _timeline_lock:
+        items = read_timeline()
+        for index, record in enumerate(items):
+            if str(record.get("id", "")) != timeline_id:
+                continue
+            updated = item.model_dump()
+            updated["id"] = timeline_id
+            items[index] = updated
+            items.sort(key=lambda row: row.get("date", ""))
+            write_timeline(items)
+            return updated
+    raise HTTPException(404, "这条时光记录不存在")
+
+
+@app.delete("/api/admin/timeline/{timeline_id}", status_code=204)
+def delete_timeline(timeline_id: str, _: Admin):
+    with _timeline_lock:
+        items = read_timeline()
+        remaining = [item for item in items if str(item.get("id", "")) != timeline_id]
+        if len(remaining) == len(items):
+            raise HTTPException(404, "这条时光记录不存在")
+        write_timeline(remaining)
 
 
 @app.get("/api/messages")
