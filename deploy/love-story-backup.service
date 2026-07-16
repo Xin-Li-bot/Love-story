@@ -1,6 +1,5 @@
 [Unit]
 Description=Back up Love Story SQLite data and uploaded photos
-After=love-story.service
 
 [Service]
 Type=oneshot
@@ -9,7 +8,13 @@ Group=love-story
 Environment=DATA_DIR=/var/lib/love-story
 Environment=BACKUP_DIR=/var/backups/love-story
 Environment=RETENTION_DAYS=14
+# Freeze application writes so the database and photo archive describe the
+# same restore point. The privileged commands are limited to service control;
+# the backup itself still runs as the unprivileged account.
+ExecStartPre=+/usr/bin/systemctl stop love-story.service
 ExecStart=/usr/local/sbin/love-story-backup
+ExecStartPost=+/usr/bin/systemctl start love-story.service
+ExecStopPost=+/usr/bin/systemctl start love-story.service
 Nice=10
 IOSchedulingClass=idle
 UMask=0077

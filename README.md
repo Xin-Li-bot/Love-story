@@ -155,7 +155,7 @@ SQLite 使用 WAL。运行中不要只复制 `database.db`，也不要手工删�
 | 变量 | 示例 | 说明 |
 | --- | --- | --- |
 | `DATA_DIR` | `/var/lib/love-story` | SQLite、时间线与上传照片的持久目录 |
-| `ADMIN_PASSWORD` | 强随机值 | 首次部署或明确密码迁移时使用；不能提交 |
+| `ADMIN_PASSWORD` | 强随机值 | 仅用于首次初始化或旧默认口令迁移；成功设置数据库口令后从环境文件删除 |
 | `PUBLIC_ORIGIN` | `https://love.example.com` | 唯一对外 Origin，包含协议且不带尾斜杠 |
 | `TRUSTED_HOSTS` | `love.example.com,www.love.example.com,127.0.0.1` | 逗号分隔的合法 Host |
 | `COOKIE_SECURE` | `true` | HTTPS 必须为 true；HTTP IP 临时为 false |
@@ -173,7 +173,7 @@ SQLite 使用 WAL。运行中不要只复制 `database.db`，也不要手工删�
 python3 -c 'import secrets; print(secrets.token_urlsafe(32))'
 ```
 
-不要把真实密码写进 shell history、systemd unit、Nginx 配置、GitHub Issue 或聊天记录。编辑生产环境文件后用 `sudo systemctl restart love-story` 才会让进程读取新环境；已有数据库密码是否轮换仍取决于初始化/重置流程，而不是单纯重启。
+不要把真实密码写进 shell history、systemd unit、Nginx 配置、GitHub Issue 或聊天记录。编辑生产环境文件后用 `sudo systemctl restart love-story` 才会让进程读取新环境；已有数据库密码是否轮换仍取决于初始化/重置流程，而不是单纯重启。初始化或交互式重置成功后，应从生产环境文件删除 `ADMIN_PASSWORD`，数据库中的 Argon2 哈希足以供后续启动使用。
 
 ## 本地开发
 
@@ -370,6 +370,14 @@ sudo -u love-story env \
   "$RELEASE_DIR/manage.py" reset-password
 ```
 
+重置成功后从 `/etc/love-story/love-story.env` 删除整行 `ADMIN_PASSWORD=...`，检查明文变量已经不存在；若服务正在运行则重启以清除进程环境：
+
+```bash
+sudoedit /etc/love-story/love-story.env
+! sudo grep -q '^ADMIN_PASSWORD=' /etc/love-story/love-story.env
+sudo systemctl try-restart love-story
+```
+
 兼容入口也可使用 `"$RELEASE_DIR/init_db.py" --reset-password`。
 
 如果当前版本的 `init_db.py --help` 还没有 `--reset-password`，不要把明文密码放在 `--password` 或 shell history 中；先部署包含交互式重置功能的版本。也可以在确认旧口令仍有效时，通过后台“修改口令”完成轮换。
@@ -446,13 +454,10 @@ sudo systemctl restart nginx
 
 TLS 模板会增加 HSTS；只有确认 HTTPS 和所有子域均可用后才启用 `includeSubDomains`。
 
-### 11. 安装日志轮转与备份
+### 11. 验证日志轮转并安装备份
 
 ```bash
-sudo install -o root -g root -m 0644 \
-  /opt/love-story/current/deploy/logrotate-love-story \
-  /etc/logrotate.d/love-story
-sudo logrotate --debug /etc/logrotate.d/love-story
+sudo logrotate --debug /etc/logrotate.conf
 
 sudo install -o root -g love-story -m 0750 \
   /opt/love-story/current/deploy/backup.sh \
@@ -467,6 +472,8 @@ sudo systemctl enable --now love-story-backup.timer
 sudo systemctl start love-story-backup.service
 sudo systemctl status love-story-backup.service --no-pager
 ```
+
+Debian 11 的 `/etc/logrotate.d/nginx` 已匹配 `/var/log/nginx/*.log`，因此会自动轮转 `love-story-access.log` 与 `love-story-error.log`。不要再为这两个文件安装第二条规则，否则 `logrotate` 会报 `duplicate log entry` 并跳过 Nginx 规则。始终检查完整的 `/etc/logrotate.conf`，而不是只检查单个片段。
 
 `deploy/journald-love-story.conf` 是整机级别的可选限制，会影响所有 systemd 日志。安装前先评估其他服务：
 
@@ -509,11 +516,14 @@ sudo systemctl restart systemd-journald
 
 `deploy/backup.sh`：
 
-- 用 SQLite `.backup` 创建一致数据库副本。
+- 强制要求 `database.db` 存在；缺失时备份失败且不会淘汰旧备份。
+- 以只读方式打开生产 SQLite，用 `.backup` 创建副本，并在标记完成前执行 `PRAGMA integrity_check`。
 - 时间线已包含在 SQLite 副本中；若 DATA_DIR 仍有旧 `timeline.json`，也会额外保留。
 - 压缩 `photos/`。
 - 生成 SHA-256 校验和。
-- 默认保留 14 天。
+- 默认保留 14 天，且只清理名称符合 UTC 自动时间戳的目录；人工回滚快照不在清理范围内。
+
+`love-story-backup.service` 会在备份期间短暂停止应用写入，并在成功或失败后重新启动应用，使 SQLite 与照片归档属于同一个恢复点。Nginx 在这几秒内仍可提供静态文件，但 API 请求可能短暂返回 502，因此默认安排在低峰时段。
 
 默认输出：
 
@@ -600,7 +610,7 @@ npm audit
 ```bash
 sudo systemd-analyze verify /etc/systemd/system/love-story.service
 sudo nginx -t
-sudo logrotate --debug /etc/logrotate.d/love-story
+sudo logrotate --debug /etc/logrotate.conf
 sudo -u love-story test -r /etc/love-story/love-story.env
 sudo -u love-story test -w /var/lib/love-story
 curl -i http://127.0.0.1:8000/api/health
@@ -778,7 +788,6 @@ curl --fail http://127.0.0.1:8000/api/health
 | [`deploy/love-story.service`](deploy/love-story.service) | 低内存、非 root systemd unit |
 | [`deploy/nginx-love-story-http.conf`](deploy/nginx-love-story-http.conf) | 无域名阶段的临时 HTTP 配置 |
 | [`deploy/nginx-love-story.conf`](deploy/nginx-love-story.conf) | 域名 + TLS 正式配置 |
-| [`deploy/logrotate-love-story`](deploy/logrotate-love-story) | Nginx 日志轮转 |
 | [`deploy/journald-love-story.conf`](deploy/journald-love-story.conf) | 可选的整机 journal 限额 |
 | [`deploy/backup.sh`](deploy/backup.sh) | SQLite、时间线与照片备份 |
 | [`deploy/love-story-backup.service`](deploy/love-story-backup.service) | 备份 oneshot unit |

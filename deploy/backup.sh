@@ -33,6 +33,12 @@ command -v sqlite3 >/dev/null 2>&1 || {
     exit 1
 }
 
+DATABASE="$DATA_DIR/database.db"
+if [ ! -f "$DATABASE" ]; then
+    echo "Required database is missing: $DATABASE" >&2
+    exit 1
+fi
+
 mkdir -p "$DESTINATION"
 cleanup_incomplete() {
     if [ ! -f "$DESTINATION/COMPLETE" ]; then
@@ -42,8 +48,11 @@ cleanup_incomplete() {
 trap cleanup_incomplete EXIT
 trap 'exit 1' HUP INT TERM
 
-if [ -f "$DATA_DIR/database.db" ]; then
-    sqlite3 "$DATA_DIR/database.db" ".timeout 10000" ".backup '$DESTINATION/database.db'"
+sqlite3 -readonly "$DATABASE" ".timeout 10000" ".backup '$DESTINATION/database.db'"
+INTEGRITY_RESULT="$(sqlite3 -readonly "$DESTINATION/database.db" "PRAGMA integrity_check;")"
+if [ "$INTEGRITY_RESULT" != "ok" ]; then
+    echo "Backup database integrity check failed: $INTEGRITY_RESULT" >&2
+    exit 1
 fi
 
 if [ -f "$DATA_DIR/timeline.json" ]; then
@@ -66,6 +75,7 @@ fi
 )
 
 touch "$DESTINATION/COMPLETE"
-find "$BACKUP_DIR" -mindepth 1 -maxdepth 1 -type d -mtime "+$RETENTION_DAYS" -exec rm -rf -- {} +
+find "$BACKUP_DIR" -mindepth 1 -maxdepth 1 -type d \
+    -name '????????T??????Z' -mtime "+$RETENTION_DAYS" -exec rm -rf -- {} +
 
 echo "Backup complete: $DESTINATION"
