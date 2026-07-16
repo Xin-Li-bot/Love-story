@@ -2,6 +2,7 @@
 set -eu
 
 umask 077
+cd /
 
 DATA_DIR="${DATA_DIR:-/var/lib/love-story}"
 BACKUP_DIR="${BACKUP_DIR:-/var/backups/love-story}"
@@ -48,7 +49,9 @@ cleanup_incomplete() {
 trap cleanup_incomplete EXIT
 trap 'exit 1' HUP INT TERM
 
-sqlite3 -readonly "$DATABASE" ".timeout 10000" ".backup '$DESTINATION/database.db'"
+# The systemd unit stops application writes first. immutable=1 prevents SQLite
+# from trying to recreate WAL/SHM files inside the read-only source directory.
+sqlite3 -readonly "file:$DATABASE?immutable=1" ".timeout 10000" ".backup '$DESTINATION/database.db'"
 INTEGRITY_RESULT="$(sqlite3 -readonly "$DESTINATION/database.db" "PRAGMA integrity_check;")"
 if [ "$INTEGRITY_RESULT" != "ok" ]; then
     echo "Backup database integrity check failed: $INTEGRITY_RESULT" >&2

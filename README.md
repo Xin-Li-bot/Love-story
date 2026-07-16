@@ -517,7 +517,7 @@ sudo systemctl restart systemd-journald
 `deploy/backup.sh`：
 
 - 强制要求 `database.db` 存在；缺失时备份失败且不会淘汰旧备份。
-- 以只读方式打开生产 SQLite，用 `.backup` 创建副本，并在标记完成前执行 `PRAGMA integrity_check`。
+- 应用停止写入后，以 SQLite `immutable=1` 只读方式打开生产库，用 `.backup` 创建副本，并在标记完成前执行 `PRAGMA integrity_check`；这不会在只读数据目录中重建 WAL/SHM 文件。
 - 时间线已包含在 SQLite 副本中；若 DATA_DIR 仍有旧 `timeline.json`，也会额外保留。
 - 压缩 `photos/`。
 - 生成 SHA-256 校验和。
