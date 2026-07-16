@@ -1,0 +1,54 @@
+[Unit]
+Description=Love Story FastAPI application
+Documentation=file:/opt/love-story/current/README.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=love-story
+Group=love-story
+WorkingDirectory=/opt/love-story/current
+EnvironmentFile=/etc/love-story/love-story.env
+Environment=PYTHONUNBUFFERED=1
+Environment=PYTHONDONTWRITEBYTECODE=1
+
+# One worker is intentional for the 0.5 GiB host and for process-local writes.
+ExecStart=/opt/love-story/current/.venv/bin/uvicorn main:app --host 127.0.0.1 --port 8000 --workers 1 --limit-concurrency 16 --backlog 64 --timeout-keep-alive 5 --no-access-log --no-server-header --proxy-headers --forwarded-allow-ips 127.0.0.1
+Restart=on-failure
+RestartSec=5s
+TimeoutStartSec=30s
+TimeoutStopSec=30s
+KillSignal=SIGINT
+
+# systemd creates /var/lib/love-story with the service account as owner.
+StateDirectory=love-story
+StateDirectoryMode=0750
+UMask=0027
+
+# Leave memory for the kernel, SSH, Nginx, journald, and SQLite page cache.
+MemoryAccounting=true
+MemoryHigh=180M
+MemoryMax=220M
+TasksMax=64
+LimitNOFILE=4096
+
+# Service hardening. Only the state directory remains writable.
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+ProtectClock=true
+ProtectHostname=true
+LockPersonality=true
+RestrictRealtime=true
+RestrictSUIDSGID=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+ReadWritePaths=/var/lib/love-story
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,11 @@
+[Unit]
+Description=Run the Love Story backup every day
+
+[Timer]
+OnCalendar=*-*-* 03:17:00
+RandomizedDelaySec=20m
+Persistent=true
+Unit=love-story-backup.service
+
+[Install]
+WantedBy=timers.target
