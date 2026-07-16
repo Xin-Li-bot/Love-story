@@ -73,6 +73,7 @@ MAX_REQUEST_BODY_BYTES = _env_int(
     "MAX_REQUEST_BODY_BYTES", 6 * MIB, MAX_UPLOAD_BYTES, 24 * MIB
 )
 MAX_IMAGE_PIXELS = _env_int("MAX_IMAGE_PIXELS", 20_000_000, 1_000_000, 40_000_000)
+MAX_OUTPUT_DIMENSION = _env_int("MAX_OUTPUT_DIMENSION", 2560, 640, 4096)
 SESSION_HOURS = _env_int("SESSION_HOURS", 12, 1, 168)
 COOKIE_SECURE = _env_bool("COOKIE_SECURE", True)
 PUBLIC_ORIGIN = os.getenv("PUBLIC_ORIGIN", "").strip().rstrip("/")
@@ -569,6 +570,9 @@ def _save_thumbnail(source: Path, destination: Path) -> tuple[int, int]:
         with Image.open(source) as opened:
             if opened.width * opened.height > MAX_IMAGE_PIXELS:
                 raise ValueError("image pixel count exceeds the configured limit")
+            # JPEG decoders can select a lower-resolution DCT level before the
+            # full pixel buffer is allocated. This matters on the 0.5 GiB host.
+            opened.draft("RGB", (1280, 1280))
             image = _prepare_rgb(opened)
             original_size = image.size
             image.thumbnail((640, 640), Image.Resampling.LANCZOS)
@@ -1263,7 +1267,12 @@ def _process_uploaded_image(
                     raise ValueError("文件内容与声明的图片格式不一致")
                 if opened.width * opened.height > MAX_IMAGE_PIXELS:
                     raise ValueError("图片像素过大")
+                opened.draft("RGB", (MAX_OUTPUT_DIMENSION, MAX_OUTPUT_DIMENSION))
                 image = _prepare_rgb(opened)
+                image.thumbnail(
+                    (MAX_OUTPUT_DIMENSION, MAX_OUTPUT_DIMENSION),
+                    Image.Resampling.LANCZOS,
+                )
                 width, height = image.size
                 image.save(destination_temp, format="WEBP", quality=84, method=4)
                 thumbnail = image.copy()

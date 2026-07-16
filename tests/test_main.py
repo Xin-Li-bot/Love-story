@@ -23,6 +23,7 @@ def load_main(monkeypatch: pytest.MonkeyPatch, data_dir: Path, password: str | N
     monkeypatch.setenv("TRUSTED_HOSTS", "testserver,localhost,127.0.0.1")
     monkeypatch.setenv("COOKIE_SECURE", "false")
     monkeypatch.setenv("MAX_IMAGE_PIXELS", "20000000")
+    monkeypatch.setenv("MAX_OUTPUT_DIMENSION", "2560")
     if password is None:
         monkeypatch.delenv("ADMIN_PASSWORD", raising=False)
     else:
@@ -259,6 +260,23 @@ def test_upload_reencodes_to_webp_strips_metadata_and_creates_thumbnail(app_modu
     with Image.open(thumbnail_path) as thumbnail:
         assert thumbnail.format == "WEBP"
         assert max(thumbnail.size) <= 640
+
+
+def test_large_jpeg_is_downsampled_before_web_delivery(app_module) -> None:
+    source = Image.new("RGB", (3060, 4080), "#668272")
+    payload = io.BytesIO()
+    source.save(payload, format="JPEG", quality=85)
+
+    with TestClient(app_module.app, base_url=ORIGIN) as client:
+        assert login(client).status_code == 200
+        response = client.post(
+            "/api/admin/upload",
+            files={"file": ("phone-photo.jpg", payload.getvalue(), "image/jpeg")},
+            headers={"Origin": ORIGIN},
+        )
+        assert response.status_code == 201, response.text
+        result = response.json()
+        assert max(result["width"], result["height"]) <= app_module.MAX_OUTPUT_DIMENSION
 
 
 def test_request_body_limit_and_security_headers(app_module) -> None:

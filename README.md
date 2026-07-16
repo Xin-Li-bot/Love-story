@@ -143,7 +143,7 @@ SQLite 使用 WAL。运行中不要只复制 `database.db`，也不要手工删�
 - 只允许 JPEG、PNG 和 WebP；GIF 与其他格式会被拒绝。
 - Nginx 和应用把完整 multipart 请求限制为 6 MiB，原始上传文件不超过 5 MiB。
 - 服务端验证真实格式、完整解码和像素数；代码默认上限为 20,000,000 像素，生产样例进一步收紧到 16,000,000。
-- 上传图会重编码为 WebP，移除 EXIF/GPS 元数据、生成不可预测的新文件名和独立缩略图。
+- 上传图会在最长边 2560 像素内重编码为 WebP，移除 EXIF/GPS 元数据、生成不可预测的新文件名和独立缩略图；JPEG 会在完整解码前请求低分辨率 DCT 层，降低内存峰值。
 - 不把 Base64 图片写进 SQLite 或旧 `timeline.json`；时间线只保存本站相对路径。
 - 新增/修改 API 拒绝 Base64；旧 JSON 导入时也跳过 `data:image` 并记录告警，相关照片需通过后台重新上传，避免把大字符串带入 SQLite。
 - 替换或删除时间线后应清理无人引用的照片，并监控 `DATA_DIR` 占用。
@@ -163,6 +163,7 @@ SQLite 使用 WAL。运行中不要只复制 `database.db`，也不要手工删�
 | `MAX_REQUEST_BODY_BYTES` | `6291456` | 含 multipart 边界的完整请求体上限 |
 | `MAX_UPLOAD_BYTES` | `5242880` | 原始图片文件上限（5 MiB） |
 | `MAX_IMAGE_PIXELS` | `16000000` | 生产图片像素上限；低内存主机应保守设置 |
+| `MAX_OUTPUT_DIMENSION` | `2560` | 网页原图最长边；限制解码后驻留内存与客户端流量 |
 
 新口令至少 12 个字符，并拒绝旧默认口令、常见弱口令、变化过少的字符串及 `REPLACE_*` 占位符。已有自定义密码哈希的数据库可以在不保留 `ADMIN_PASSWORD` 明文的情况下启动；该变量仍用于新库初始化或旧默认口令迁移。
 
@@ -349,7 +350,7 @@ sudo find /var/lib/love-story -type f -exec chmod 0640 {} +
 
 本次现网时间线已经核验为 38 条、全部有 ID、没有 Base64，最长图片路径 57 个字符，因此无需 Base64 转换。迁移后应保持 38 条；2 条无图记录可以继续保留。若以后导入其他旧 JSON，`data:image` 会被跳过并告警，而不是写入 SQLite。
 
-迁移完成后生成历史图片缩略图；该命令逐张处理，避免并发解码挤占 0.5 GiB 主机内存：
+迁移完成后生成历史图片缩略图；JPEG 会先选择较低分辨率解码层，命令再逐张处理，避免并发解码挤占 0.5 GiB 主机内存：
 
 ```bash
 sudo -u love-story env DATA_DIR=/var/lib/love-story \
