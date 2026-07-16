@@ -279,6 +279,32 @@ def test_large_jpeg_is_downsampled_before_web_delivery(app_module) -> None:
         assert max(result["width"], result["height"]) <= app_module.MAX_OUTPUT_DIMENSION
 
 
+def test_thumbnail_rebuild_skips_over_limit_image_and_continues(app_module) -> None:
+    with TestClient(app_module.app, base_url=ORIGIN):
+        pass
+    source = Image.new("RGB", (1100, 1000), "#ad7480")
+    source_path = app_module.STATIC_DIR / "test-over-limit.jpg"
+    original_limit = app_module.MAX_IMAGE_PIXELS
+    try:
+        source.save(source_path, format="JPEG", quality=80)
+        with app_module.db_session() as connection:
+            connection.execute(
+                """
+                INSERT INTO timeline
+                    (id, date, title, description, image, thumbnail, created_at, updated_at)
+                VALUES ('over-limit', '1900-01-01', 'large', 'large',
+                        '/static/test-over-limit.jpg', '', '2025-01-01T00:00:00Z',
+                        '2025-01-01T00:00:00Z')
+                """
+            )
+        app_module.MAX_IMAGE_PIXELS = 1_000_000
+        result = app_module.rebuild_missing_thumbnails(limit=1)
+        assert result["skipped"] == 1
+    finally:
+        app_module.MAX_IMAGE_PIXELS = original_limit
+        source_path.unlink(missing_ok=True)
+
+
 def test_request_body_limit_and_security_headers(app_module) -> None:
     with TestClient(app_module.app, base_url=ORIGIN) as client:
         health = client.get("/api/health")

@@ -614,7 +614,13 @@ def rebuild_missing_thumbnails(limit: int | None = None) -> dict[str, int]:
                     (thumbnail_url, utc_iso(), row["id"]),
                 )
             created += 1
-        except (OSError, UnidentifiedImageError, ValueError, Image.DecompressionBombError) as exc:
+        except (
+            OSError,
+            UnidentifiedImageError,
+            ValueError,
+            Image.DecompressionBombError,
+            Image.DecompressionBombWarning,
+        ) as exc:
             LOGGER.warning("Unable to create thumbnail for %s: %s", row["image"], exc)
             skipped += 1
     return {"created": created, "skipped": skipped}
