@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="zh-CN" class="scroll-smooth">
 <head>
   <meta charset="utf-8">
@@ -639,7 +639,23 @@
       font-size: 14px;
       font-weight: 700;
       cursor: pointer;
-      transition: transform 250ms ease, box-shadow 250ms ease, background 250ms ease, color 250ms ease;
+      /* Apple §1: transform 反馈保持在 100ms 内，其余视觉过渡稍慢不影响手感 */
+      transition: transform 100ms ease-out, box-shadow 250ms ease, background 250ms ease, color 250ms ease;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Apple §1: 按下瞬间即反馈（对触屏同样生效，hover 在触屏不触发） */
+    .primary-button:active,
+    .secondary-button:active,
+    .danger-button:active {
+      transform: scale(0.96);
+      transition-duration: 60ms;
+    }
+
+    .icon-button:active {
+      transform: scale(0.9);
+      transition-duration: 60ms;
     }
 
     .primary-button {
@@ -794,16 +810,28 @@
       position: fixed;
       inset: 0;
       z-index: 100;
-      display: none;
+      display: grid;
       place-items: center;
       padding: 20px;
       background: rgba(0, 0, 0, 0.48);
-      -webkit-backdrop-filter: blur(16px);
-      backdrop-filter: blur(16px);
+      /* Apple §12: 材质化登场——模糊半径与背景遮罩一起动，读起来像真实材质到场 */
+      -webkit-backdrop-filter: blur(0px);
+      backdrop-filter: blur(0px);
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: opacity 300ms ease, visibility 0s linear 300ms,
+                  backdrop-filter 300ms ease, -webkit-backdrop-filter 300ms ease;
     }
 
     .modal.open {
-      display: grid;
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      -webkit-backdrop-filter: blur(16px);
+      backdrop-filter: blur(16px);
+      transition: opacity 300ms ease, visibility 0s,
+                  backdrop-filter 300ms ease, -webkit-backdrop-filter 300ms ease;
     }
 
     .dialog {
@@ -814,6 +842,16 @@
       border-radius: 24px;
       background: var(--paper);
       box-shadow: 0 30px 90px rgba(0, 0, 0, 0.26);
+      /* Apple §4/§12: 临界阻尼 ease-out（淡入菜单不回弹），materialize 登场 */
+      transform: scale(0.92) translateY(14px);
+      opacity: 0;
+      will-change: transform, opacity;
+      transition: transform 360ms cubic-bezier(0.22, 1, 0.36, 1), opacity 300ms ease;
+    }
+
+    .modal.open .dialog {
+      transform: scale(1) translateY(0);
+      opacity: 1;
     }
 
     .dialog-wide {
@@ -932,15 +970,22 @@
       position: fixed;
       inset: 0;
       z-index: 120;
-      display: none;
       color: #ffffff;
       background: rgba(0, 0, 0, 0.95);
       overflow: hidden;
       touch-action: none;
+      /* Apple §12: 淡入而非硬切换 */
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: opacity 260ms ease, visibility 0s linear 260ms;
     }
 
     .lightbox.open {
-      display: block;
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      transition: opacity 260ms ease, visibility 0s;
     }
 
     .lightbox-stage {
@@ -1061,7 +1106,7 @@
     }
 
     .mobile-menu {
-      display: none;
+      display: block;
       position: fixed;
       top: 72px;
       right: 14px;
@@ -1074,10 +1119,24 @@
       box-shadow: var(--shadow-md);
       -webkit-backdrop-filter: blur(22px);
       backdrop-filter: blur(22px);
+      /* Apple §7: 从顶部滑入，关闭时沿同一路径退回（进出对称） */
+      transform: translateY(-16px) scale(0.98);
+      transform-origin: top center;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: opacity 260ms ease, transform 260ms cubic-bezier(0.22, 1, 0.36, 1),
+                  visibility 0s linear 260ms;
+      will-change: transform, opacity;
     }
 
     .mobile-menu.open {
-      display: block;
+      transform: translateY(0) scale(1);
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      transition: opacity 260ms ease, transform 260ms cubic-bezier(0.22, 1, 0.36, 1),
+                  visibility 0s;
     }
 
     .mobile-menu a {
@@ -1259,9 +1318,17 @@
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after {
         scroll-behavior: auto !important;
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
+      }
+      /* Apple §14: 不是「无反馈」，而是用柔和的透明度交叉淡入替代位移/弹簧 */
+      .dialog, .lightbox-image, .mobile-menu {
+        transform: none !important;
+      }
+      .modal, .lightbox, .mobile-menu, .toast {
+        transition: opacity 200ms ease !important;
+      }
+      /* 停掉持续循环动画（唱片旋转、声波、骨架脉冲）以避免前庭不适 */
+      .music-disc-button, .music-wave span, .skeleton, .hero {
+        animation: none !important;
       }
     }
   </style>
@@ -1924,6 +1991,38 @@
       }
     }
 
+    // ===== Apple-style Spring Engine (RAF, ~2KB, 零依赖) =====
+    // 用 Apple 的 damping+response 双参数模型；从当前呈现值出发、可注入初速度、随时 retarget → 可中断
+    function createSpring({ damping = 1, response = 0.4, onUpdate, onRest }) {
+      let value = 0, target = 0, velocity = 0, raf = null, last = 0;
+      const stiffness = (2 * Math.PI / response) ** 2;
+      const damper = (4 * Math.PI * damping) / response;
+      function frame(now) {
+        const dt = Math.min((now - last) / 1000, 1 / 30); last = now;
+        const a = -stiffness * (value - target) - damper * velocity;
+        velocity += a * dt; value += velocity * dt;
+        onUpdate(value);
+        if (Math.abs(velocity) < 0.05 && Math.abs(value - target) < 0.05) {
+          value = target; onUpdate(value); raf = null; onRest && onRest(); return;
+        }
+        raf = requestAnimationFrame(frame);
+      }
+      return {
+        set(v) { value = v; velocity = 0; },
+        stop() { if (raf) { cancelAnimationFrame(raf); raf = null; } },
+        to(t, initialV) {
+          target = t;
+          if (initialV != null) velocity = initialV;
+          if (!raf) { last = performance.now(); raf = requestAnimationFrame(frame); }
+        },
+        get value() { return value; }
+      };
+    }
+
+    // Apple §6 动量投影（指数衰减，非物理教科书公式） / §9 橡皮筋边界阻尼
+    function projectMomentum(v, decel) { decel = decel || 0.998; return (v / 1000) * decel / (1 - decel); }
+    function rubberband(x, dim, c) { c = c || 0.55; return (x * dim * c) / (dim + c * Math.abs(x)); }
+
     function openLightbox(index) {
       if (!state.photos.length) return;
       state.lightboxIndex = (index + state.photos.length) % state.photos.length;
@@ -1938,7 +2037,8 @@
       const image = $('#lightbox-image');
       image.src = photo.src;
       image.alt = photo.title;
-      image.style.transform = `scale(${state.zoom})`;
+      image.style.transition = '';
+      image.style.transform = `translateX(0px) scale(${state.zoom})`;
       $('#lightbox-caption').textContent = `${photo.title} · ${formatDate(photo.date)}`;
       $('#lightbox-count').textContent = `${state.lightboxIndex + 1} / ${state.photos.length}`;
     }
@@ -1956,7 +2056,65 @@
 
     function changeZoom(amount) {
       state.zoom = Math.min(3, Math.max(1, state.zoom + amount));
-      $('#lightbox-image').style.transform = `scale(${state.zoom})`;
+      $('#lightbox-image').style.transform = `translateX(0px) scale(${state.zoom})`;
+    }
+
+    // Apple §2/§5/§6/§9/§10: Lightbox 触屏滑动切图——1:1 跟手、速度接力、动量投影、边缘橡皮筋
+    function attachLightboxSwipe() {
+      const stage = $('#lightbox-stage');
+      const image = $('#lightbox-image');
+      if (!stage || !image) return;
+      let dragging = false, startX = 0, curX = 0, history = [];
+      const spring = createSpring({
+        damping: 0.8, response: 0.35,
+        onUpdate: v => { image.style.transform = `translateX(${v}px) scale(1)`; }
+      });
+
+      stage.addEventListener('pointerdown', e => {
+        if (state.zoom !== 1 || !state.photos.length) return; // 放大态不切图
+        dragging = true; startX = e.clientX; curX = 0;
+        history = [{ x: e.clientX, t: performance.now() }];
+        spring.stop(); spring.set(0);
+        image.style.transition = 'none';
+        try { stage.setPointerCapture(e.pointerId); } catch (_) {}
+      });
+
+      stage.addEventListener('pointermove', e => {
+        if (!dragging) return;
+        curX = e.clientX - startX;
+        const W = stage.clientWidth || window.innerWidth;
+        const atStart = state.lightboxIndex === 0 && curX > 0;
+        const atEnd = state.lightboxIndex === state.photos.length - 1 && curX < 0;
+        const applied = (atStart || atEnd) ? rubberband(curX, W) : curX; // 边缘橡皮筋
+        image.style.transform = `translateX(${applied}px) scale(1)`;
+        history.push({ x: e.clientX, t: performance.now() });
+        if (history.length > 6) history.shift();
+      });
+
+      function endDrag() {
+        if (!dragging) return; dragging = false;
+        const first = history[0], last = history[history.length - 1];
+        const dt = (last.t - first.t) || 16;
+        const velocity = (last.x - first.x) / dt * 1000; // px/s
+        const W = stage.clientWidth || window.innerWidth;
+        const projected = curX + projectMomentum(velocity);
+        image.style.transition = '';
+        if (projected < -W * 0.25 && state.lightboxIndex < state.photos.length - 1) {
+          // 甩向下一张：先让当前图带速度滑出，再换图归位
+          spring.set(curX);
+          spring.to(-W, velocity);
+          setTimeout(() => { moveLightbox(1); }, 180);
+        } else if (projected > W * 0.25 && state.lightboxIndex > 0) {
+          spring.set(curX);
+          spring.to(W, velocity);
+          setTimeout(() => { moveLightbox(-1); }, 180);
+        } else {
+          spring.set(curX);
+          spring.to(0, velocity); // §5 回弹并接力释放速度
+        }
+      }
+      stage.addEventListener('pointerup', endDrag);
+      stage.addEventListener('pointercancel', endDrag);
     }
 
     function openModal(modalId) {
@@ -2325,6 +2483,8 @@
         event.preventDefault();
         changeZoom(event.deltaY < 0 ? 0.2 : -0.2);
       }, { passive: false });
+
+      attachLightboxSwipe(); // Apple §2/§10: 触屏滑动切图手势
 
       document.addEventListener('keydown', event => {
         if (event.key === 'Escape') {
