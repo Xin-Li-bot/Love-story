@@ -68,13 +68,19 @@ Nginx :80/:443
 
 - 恋爱天数和纪念日倒计时。
 - 纪念日中心：可设置每年循环或一次性的纪念日，前台以倒计时/正计时卡片展示「距下一次」或「已过/还剩」，后台可增删改。
-- 二级下拉导航分组：我们的日子（恋爱进度 · 纪念日中心）、回忆（时光机 · 相册）、心意（心愿单 · 留言板）；纯 CSS hover/focus 下拉，移动端沿用折叠菜单。
+- 数据小结：纯客户端聚合展示相恋天数、时光记忆、相册照片、心愿达成、纪念日与收到祝福等统计，不新增后端端点。
+- 心情日历：GitHub 式热力图展示近一年每日心情（5 档色阶，含小记），后台按日期打卡（同日 upsert 覆盖）。
+- 时间胶囊：写给未来的信，公开接口在开启日期前只返回标题与倒计时、隐藏正文（服务端锁），到期后展示正文；后台可增删改。
+- 约会转盘：管理员维护约会点子，前台点击后在若干候选间快速轮显再缓停选中（纯原生 JS，无 canvas）。
+- 今日情话：管理员维护情话，前台按日期确定性展示「今日一句」，并可「换一句」随机切换。
+- 四级下拉导航分组：我们的日子（恋爱进度 · 数据小结 · 纪念日中心）、回忆（时光机 · 相册 · 心情日历）、心意（心愿单 · 留言板 · 时间胶囊）、趣味（约会转盘 · 今日情话）；纯 CSS hover/focus 下拉，移动端沿用折叠菜单。
 - 时间线卡片、相册、灯箱与背景音乐。
 - 心愿单和公开留言板。
-- 管理员登录、时间线维护、纪念日维护、图片上传、留言删除和密码修改。
+- 管理员登录、时间线维护、纪念日维护、心情/胶囊/转盘/情话维护、图片上传、留言删除和密码修改。
 - Tailwind CSS 在构建阶段生成 `static/site.css`；浏览器不再运行 Tailwind Play CDN。
 - 主脚本为 `static/app.js`，Lucide 与 canvas-confetti 固定版本并从 `static/vendor/` 同源加载。
 - `app.js` 与 `site.css` 使用 `no-cache` 重新验证；带版本号的 vendor 文件可长缓存，避免发布后旧前端与新 API 错配。
+- 现网实际前端入口为 `static/refactor-app.js` 与 `static/refactor.css`，以 `?v=` 版本号强制刷新（当前 `?v=20260720`，随每次前端发布递增）。
 
 自托管 vendor 文件应按 SHA-256 校验，防止手工更新时混入非预期内容：
 
@@ -103,6 +109,20 @@ Nginx :80/:443
 | `DELETE /api/messages/{id}` | 删除留言 | 管理员 |
 | `GET /api/wishlist` | 获取心愿单 | 公开 |
 | `PATCH /api/wishlist/{id}` | 更新心愿完成状态 | 管理员 |
+| `GET /api/capsules` | 获取时间胶囊（未到期隐藏正文） | 公开 |
+| `GET /api/admin/capsules` | 获取全部胶囊（含正文，供后台编辑） | 管理员 |
+| `POST /api/capsules` | 新增胶囊 | 管理员 |
+| `PUT /api/admin/capsules/{id}` | 更新胶囊 | 管理员 |
+| `DELETE /api/admin/capsules/{id}` | 删除胶囊 | 管理员 |
+| `GET /api/moods` | 获取心情记录 | 公开 |
+| `PUT /api/admin/moods/{date}` | 按日期 upsert 心情 | 管理员 |
+| `DELETE /api/admin/moods/{date}` | 删除某日心情 | 管理员 |
+| `GET /api/date-ideas` | 获取约会点子 | 公开 |
+| `POST /api/date-ideas` | 新增约会点子 | 管理员 |
+| `DELETE /api/admin/date-ideas/{id}` | 删除约会点子 | 管理员 |
+| `GET /api/love-quotes` | 获取情话 | 公开 |
+| `POST /api/love-quotes` | 新增情话 | 管理员 |
+| `DELETE /api/admin/love-quotes/{id}` | 删除情话 | 管理员 |
 | `POST /api/admin/login` | 管理员登录 | 公开、严格限流 |
 | `GET /api/admin/session` | 检查当前管理员会话 | 会话探测 |
 | `POST /api/admin/logout` | 注销会话 | 管理员 |
@@ -123,6 +143,10 @@ Nginx :80/:443
 | `app_settings` | `key`、`value` | 密码哈希及应用设置 |
 | `admin_sessions` | `token_hash`、`expires_at`、`created_at`、`credential_version` | 只保存会话令牌哈希；修改口令后版本失效 |
 | `uploads` | `path`、`thumbnail_path`、`byte_size`、`width`、`height`、`created_at` | 跟踪后台上传文件，供安全清理孤儿文件 |
+| `capsules` | `id`、`title`、`body`、`unlock_date`、`created_at`、`updated_at` | 时间胶囊；`unlock_date` 前公开接口隐藏 `body` |
+| `moods` | `date`（主键）、`level`(1-5)、`note`、`updated_at` | 心情日历，按日期 upsert |
+| `date_ideas` | `id`、`text`、`created_at` | 约会转盘点子 |
+| `love_quotes` | `id`、`text`、`created_at` | 今日情话 |
 
 SQLite 使用 WAL。运行中不要只复制 `database.db`，也不要手工删除 `database.db-wal` 或 `database.db-shm`；一致性备份应使用 SQLite `.backup`。
 

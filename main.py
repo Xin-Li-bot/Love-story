@@ -284,10 +284,35 @@ def _migrate_schema(connection: sqlite3.Connection) -> None:
             created_at TEXT NOT NULL,
             updated_at TEXT NOT NULL
         );
+        CREATE TABLE IF NOT EXISTS capsules (
+            id TEXT PRIMARY KEY,
+            title TEXT NOT NULL,
+            body TEXT NOT NULL,
+            unlock_date TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS moods (
+            date TEXT PRIMARY KEY,
+            level INTEGER NOT NULL CHECK(level BETWEEN 1 AND 5),
+            note TEXT NOT NULL DEFAULT '',
+            updated_at TEXT NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS date_ideas (
+            id TEXT PRIMARY KEY,
+            text TEXT NOT NULL,
+            created_at TEXT NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS love_quotes (
+            id TEXT PRIMARY KEY,
+            text TEXT NOT NULL,
+            created_at TEXT NOT NULL
+        );
         CREATE INDEX IF NOT EXISTS idx_admin_sessions_expires
             ON admin_sessions(expires_at);
         CREATE INDEX IF NOT EXISTS idx_timeline_date ON timeline(date);
         CREATE INDEX IF NOT EXISTS idx_anniversaries_date ON anniversaries(date);
+        CREATE INDEX IF NOT EXISTS idx_capsules_unlock ON capsules(unlock_date);
         """
     )
     session_columns = _table_columns(connection, "admin_sessions")
@@ -807,6 +832,76 @@ class AnniversaryCreate(AnniversaryPayload):
 
 class AnniversaryUpdate(AnniversaryPayload):
     pass
+
+
+class CapsulePayload(BaseModel):
+    title: str = Field(min_length=1, max_length=40)
+    body: str = Field(min_length=1, max_length=2000)
+    unlock_date: str
+
+    @field_validator("unlock_date")
+    @classmethod
+    def valid_unlock_date(cls, value: str) -> str:
+        datetime.strptime(value, "%Y-%m-%d")
+        return value
+
+    @field_validator("title")
+    @classmethod
+    def clean_title(cls, value: str) -> str:
+        cleaned = value.strip()
+        if not cleaned:
+            raise ValueError("内容不能为空")
+        return cleaned
+
+    @field_validator("body")
+    @classmethod
+    def clean_body(cls, value: str) -> str:
+        cleaned = value.strip()
+        if not cleaned:
+            raise ValueError("内容不能为空")
+        return cleaned
+
+
+class CapsuleCreate(CapsulePayload):
+    pass
+
+
+class CapsuleUpdate(CapsulePayload):
+    pass
+
+
+class MoodPayload(BaseModel):
+    level: int = Field(ge=1, le=5)
+    note: str = Field(default="", max_length=100)
+
+    @field_validator("note")
+    @classmethod
+    def clean_note(cls, value: str) -> str:
+        return value.strip()
+
+
+class DateIdeaCreate(BaseModel):
+    text: str = Field(min_length=1, max_length=60)
+
+    @field_validator("text")
+    @classmethod
+    def clean_text(cls, value: str) -> str:
+        cleaned = value.strip()
+        if not cleaned:
+            raise ValueError("内容不能为空")
+        return cleaned
+
+
+class LoveQuoteCreate(BaseModel):
+    text: str = Field(min_length=1, max_length=140)
+
+    @field_validator("text")
+    @classmethod
+    def clean_text(cls, value: str) -> str:
+        cleaned = value.strip()
+        if not cleaned:
+            raise ValueError("内容不能为空")
+        return cleaned
 
 
 class RequestBodyTooLarge(Exception):
@@ -1330,6 +1425,200 @@ def delete_anniversary(anniversary_id: str, _: Admin) -> Response:
         )
     if cursor.rowcount == 0:
         raise HTTPException(404, "这个纪念日不存在")
+    return Response(status_code=204)
+
+
+def _local_today() -> str:
+    return (utc_now() + timedelta(hours=8)).date().isoformat()
+
+
+def _capsule_public_dict(row: sqlite3.Row, today: str) -> dict[str, Any]:
+    locked = row["unlock_date"] > today
+    data = {
+        "id": row["id"],
+        "title": row["title"],
+        "unlock_date": row["unlock_date"],
+        "locked": locked,
+    }
+    if not locked:
+        data["body"] = row["body"]
+    return data
+
+
+@app.get("/api/capsules")
+def get_capsules() -> list[dict[str, Any]]:
+    today = _local_today()
+    with db_session() as connection:
+        rows = connection.execute(
+            "SELECT id, title, body, unlock_date FROM capsules ORDER BY unlock_date, id"
+        ).fetchall()
+    return [_capsule_public_dict(row, today) for row in rows]
+
+
+@app.get("/api/admin/capsules")
+def get_admin_capsules(_: Admin) -> list[dict[str, Any]]:
+    today = _local_today()
+    with db_session() as connection:
+        rows = connection.execute(
+            "SELECT id, title, body, unlock_date FROM capsules ORDER BY unlock_date, id"
+        ).fetchall()
+    return [
+        {
+            "id": row["id"],
+            "title": row["title"],
+            "body": row["body"],
+            "unlock_date": row["unlock_date"],
+            "locked": row["unlock_date"] > today,
+        }
+        for row in rows
+    ]
+
+
+@app.post("/api/capsules", status_code=201)
+def add_capsule(item: CapsuleCreate, _: Admin) -> dict[str, Any]:
+    record = item.model_dump()
+    record["id"] = secrets.token_hex(8)
+    now = utc_iso()
+    with _data_lock, db_session() as connection:
+        connection.execute(
+            """
+            INSERT INTO capsules (id, title, body, unlock_date, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?)
+            """,
+            (record["id"], record["title"], record["body"], record["unlock_date"], now, now),
+        )
+    return record
+
+
+@app.put("/api/admin/capsules/{capsule_id}")
+def update_capsule(capsule_id: str, item: CapsuleUpdate, _: Admin) -> dict[str, Any]:
+    payload = item.model_dump()
+    with _data_lock, db_session() as connection:
+        existing = connection.execute(
+            "SELECT id FROM capsules WHERE id = ?", (capsule_id,)
+        ).fetchone()
+        if existing is None:
+            raise HTTPException(404, "这个胶囊不存在")
+        connection.execute(
+            """
+            UPDATE capsules
+            SET title = ?, body = ?, unlock_date = ?, updated_at = ?
+            WHERE id = ?
+            """,
+            (payload["title"], payload["body"], payload["unlock_date"], utc_iso(), capsule_id),
+        )
+    payload["id"] = capsule_id
+    return payload
+
+
+@app.delete("/api/admin/capsules/{capsule_id}", status_code=204)
+def delete_capsule(capsule_id: str, _: Admin) -> Response:
+    with _data_lock, db_session() as connection:
+        cursor = connection.execute("DELETE FROM capsules WHERE id = ?", (capsule_id,))
+    if cursor.rowcount == 0:
+        raise HTTPException(404, "这个胶囊不存在")
+    return Response(status_code=204)
+
+
+@app.get("/api/moods")
+def get_moods() -> list[dict[str, Any]]:
+    with db_session() as connection:
+        rows = connection.execute(
+            "SELECT date, level, note FROM moods ORDER BY date"
+        ).fetchall()
+    return [
+        {"date": row["date"], "level": row["level"], "note": row["note"]}
+        for row in rows
+    ]
+
+
+@app.put("/api/admin/moods/{mood_date}")
+def set_mood(mood_date: str, item: MoodPayload, _: Admin) -> dict[str, Any]:
+    try:
+        datetime.strptime(mood_date, "%Y-%m-%d")
+    except ValueError:
+        raise HTTPException(422, "日期格式不正确") from None
+    payload = item.model_dump()
+    now = utc_iso()
+    with _data_lock, db_session() as connection:
+        connection.execute(
+            """
+            INSERT INTO moods (date, level, note, updated_at)
+            VALUES (?, ?, ?, ?)
+            ON CONFLICT(date) DO UPDATE SET
+                level = excluded.level,
+                note = excluded.note,
+                updated_at = excluded.updated_at
+            """,
+            (mood_date, payload["level"], payload["note"], now),
+        )
+    return {"date": mood_date, "level": payload["level"], "note": payload["note"]}
+
+
+@app.delete("/api/admin/moods/{mood_date}", status_code=204)
+def delete_mood(mood_date: str, _: Admin) -> Response:
+    with _data_lock, db_session() as connection:
+        cursor = connection.execute("DELETE FROM moods WHERE date = ?", (mood_date,))
+    if cursor.rowcount == 0:
+        raise HTTPException(404, "这一天还没有心情记录")
+    return Response(status_code=204)
+
+
+@app.get("/api/date-ideas")
+def get_date_ideas() -> list[dict[str, Any]]:
+    with db_session() as connection:
+        rows = connection.execute(
+            "SELECT id, text FROM date_ideas ORDER BY created_at, id"
+        ).fetchall()
+    return [{"id": row["id"], "text": row["text"]} for row in rows]
+
+
+@app.post("/api/date-ideas", status_code=201)
+def add_date_idea(item: DateIdeaCreate, _: Admin) -> dict[str, Any]:
+    record = {"id": secrets.token_hex(8), "text": item.text}
+    with _data_lock, db_session() as connection:
+        connection.execute(
+            "INSERT INTO date_ideas (id, text, created_at) VALUES (?, ?, ?)",
+            (record["id"], record["text"], utc_iso()),
+        )
+    return record
+
+
+@app.delete("/api/admin/date-ideas/{idea_id}", status_code=204)
+def delete_date_idea(idea_id: str, _: Admin) -> Response:
+    with _data_lock, db_session() as connection:
+        cursor = connection.execute("DELETE FROM date_ideas WHERE id = ?", (idea_id,))
+    if cursor.rowcount == 0:
+        raise HTTPException(404, "这个约会点子不存在")
+    return Response(status_code=204)
+
+
+@app.get("/api/love-quotes")
+def get_love_quotes() -> list[dict[str, Any]]:
+    with db_session() as connection:
+        rows = connection.execute(
+            "SELECT id, text FROM love_quotes ORDER BY created_at, id"
+        ).fetchall()
+    return [{"id": row["id"], "text": row["text"]} for row in rows]
+
+
+@app.post("/api/love-quotes", status_code=201)
+def add_love_quote(item: LoveQuoteCreate, _: Admin) -> dict[str, Any]:
+    record = {"id": secrets.token_hex(8), "text": item.text}
+    with _data_lock, db_session() as connection:
+        connection.execute(
+            "INSERT INTO love_quotes (id, text, created_at) VALUES (?, ?, ?)",
+            (record["id"], record["text"], utc_iso()),
+        )
+    return record
+
+
+@app.delete("/api/admin/love-quotes/{quote_id}", status_code=204)
+def delete_love_quote(quote_id: str, _: Admin) -> Response:
+    with _data_lock, db_session() as connection:
+        cursor = connection.execute("DELETE FROM love_quotes WHERE id = ?", (quote_id,))
+    if cursor.rowcount == 0:
+        raise HTTPException(404, "这句情话不存在")
     return Response(status_code=204)
 
 

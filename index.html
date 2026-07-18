@@ -9,7 +9,7 @@
 
   <script defer src="/static/vendor/lucide-0.468.0.min.js"></script>
   <script defer src="/static/vendor/canvas-confetti-1.9.3.min.js"></script>
-  <script defer src="/static/refactor-app.js?v=20260719"></script>
+  <script defer src="/static/refactor-app.js?v=20260720"></script>
 
   <style>
     :root {
@@ -1500,8 +1500,152 @@
         animation: none !important;
       }
     }
+
+    /* 数据小结 */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 16px;
+      max-width: 1080px;
+      margin: 0 auto;
+    }
+    .stat-tile {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      padding: 26px 18px;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: var(--paper);
+      text-align: center;
+    }
+    .stat-icon {
+      width: 42px;
+      height: 42px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      color: var(--rose);
+      background: var(--rose-soft);
+    }
+    .stat-number { font-size: 26px; font-weight: 700; color: var(--ink); }
+    .stat-label { font-size: 12px; color: var(--muted); }
+
+    /* 心情日历热力图 */
+    .mood-heatmap {
+      display: flex;
+      gap: 3px;
+      overflow-x: auto;
+      padding: 8px 2px;
+      justify-content: center;
+    }
+    .mood-week { display: flex; flex-direction: column; gap: 3px; }
+    .mood-cell {
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+      background: var(--rose-soft);
+      flex: 0 0 auto;
+    }
+    .mood-cell.empty { background: transparent; }
+    .mood-legend {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      margin-top: 16px;
+      font-size: 11px;
+      color: var(--faint);
+    }
+
+    /* 时间胶囊 */
+    .capsule-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 18px;
+      max-width: 1080px;
+      margin: 0 auto;
+    }
+    .capsule-card {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      padding: 26px;
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      background: var(--paper);
+    }
+    .capsule-card.locked { background: var(--paper-soft); border-style: dashed; }
+    .capsule-head { display: flex; align-items: center; gap: 12px; }
+    .capsule-icon {
+      width: 40px;
+      height: 40px;
+      display: grid;
+      place-items: center;
+      flex: 0 0 auto;
+      border-radius: 50%;
+      color: var(--rose);
+      background: var(--rose-soft);
+    }
+    .capsule-title { font-size: 15px; font-weight: 600; color: var(--ink); }
+    .capsule-body { font-size: 13px; line-height: 1.8; color: var(--muted); white-space: pre-wrap; }
+    .capsule-locked-copy { font-size: 12px; color: var(--faint); margin: 0; }
+    .capsule-countdown { display: flex; align-items: baseline; gap: 8px; }
+    .capsule-count { font-size: 24px; font-weight: 700; color: var(--rose); }
+    .capsule-count-label { font-size: 11px; color: var(--faint); }
+    .capsule-date { font-size: 11px; color: var(--faint); }
+
+    /* 约会转盘 */
+    .roulette-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 22px;
+      max-width: 560px;
+      margin: 0 auto;
+    }
+    .roulette-display {
+      width: 100%;
+      min-height: 120px;
+      display: grid;
+      place-items: center;
+      padding: 28px;
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      background: var(--paper);
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--ink);
+      text-align: center;
+      transition: transform 120ms ease, color 120ms ease;
+    }
+    .roulette-display.spinning { color: var(--rose); transform: scale(1.03); }
+
+    /* 今日情话 */
+    .quote-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      max-width: 620px;
+      margin: 0 auto;
+    }
+    .quote-card {
+      width: 100%;
+      margin: 0;
+      padding: 34px 30px;
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      background: var(--paper);
+      font-size: 20px;
+      line-height: 1.8;
+      font-weight: 600;
+      color: var(--ink);
+      text-align: center;
+    }
   </style>
-  <link rel="stylesheet" href="/static/refactor.css?v=20260719">
+  <link rel="stylesheet" href="/static/refactor.css?v=20260720">
 </head>
 
 <body>
@@ -1519,6 +1663,7 @@
           <button class="nav-group-trigger" type="button" aria-haspopup="true" aria-expanded="false">我们的日子 <i data-lucide="chevron-down"></i></button>
           <div class="nav-dropdown">
             <a href="#days">恋爱进度</a>
+            <a href="#dashboard">数据小结</a>
             <a href="#anniversaries">纪念日中心</a>
           </div>
         </div>
@@ -1527,6 +1672,7 @@
           <div class="nav-dropdown">
             <a href="#timeline">时光机</a>
             <a href="#gallery">相册</a>
+            <a href="#moods">心情日历</a>
           </div>
         </div>
         <div class="nav-group">
@@ -1534,6 +1680,14 @@
           <div class="nav-dropdown">
             <a href="#wishlist">心愿单</a>
             <a href="#messages">留言板</a>
+            <a href="#capsules">时间胶囊</a>
+          </div>
+        </div>
+        <div class="nav-group">
+          <button class="nav-group-trigger" type="button" aria-haspopup="true" aria-expanded="false">趣味 <i data-lucide="chevron-down"></i></button>
+          <div class="nav-dropdown">
+            <a href="#roulette">约会转盘</a>
+            <a href="#quotes">今日情话</a>
           </div>
         </div>
       </div>
@@ -1549,13 +1703,19 @@
   <div id="mobile-menu" class="mobile-menu">
     <span class="mobile-menu-group">我们的日子</span>
     <a href="#days">恋爱进度</a>
+    <a href="#dashboard">数据小结</a>
     <a href="#anniversaries">纪念日中心</a>
     <span class="mobile-menu-group">回忆</span>
     <a href="#timeline">时光机</a>
     <a href="#gallery">相册</a>
+    <a href="#moods">心情日历</a>
     <span class="mobile-menu-group">心意</span>
     <a href="#wishlist">心愿单</a>
     <a href="#messages">留言板</a>
+    <a href="#capsules">时间胶囊</a>
+    <span class="mobile-menu-group">趣味</span>
+    <a href="#roulette">约会转盘</a>
+    <a href="#quotes">今日情话</a>
   </div>
 
   <main>
@@ -1610,6 +1770,17 @@
       </div>
     </section>
 
+    <section id="dashboard" class="section-band">
+      <div class="site-container">
+        <header class="section-header reveal">
+          <div class="section-kicker">Us In Numbers</div>
+          <h2 class="section-title font-sans tracking-tight font-bold text-neutral-900">我们的数据小结</h2>
+          <p class="section-description text-neutral-500 font-normal">把这段旅程里点点滴滴的痕迹，汇成一组温柔的数字。</p>
+        </header>
+        <div id="dashboard-grid" class="dashboard-grid" aria-live="polite"><div class="skeleton"></div><div class="skeleton"></div></div>
+      </div>
+    </section>
+
     <section id="anniversaries" class="section-band section-band-white">
       <div class="site-container">
         <header class="section-header reveal">
@@ -1642,6 +1813,26 @@
         <div id="gallery-grid" class="gallery-grid" aria-live="polite"><div class="skeleton col-span-full"></div></div>
         <div class="mt-10 text-center">
           <button id="gallery-more-button" type="button" class="secondary-button hidden"><i data-lucide="images" class="w-4 h-4"></i><span>展开全部照片</span></button>
+        </div>
+      </div>
+    </section>
+
+    <section id="moods" class="section-band">
+      <div class="site-container">
+        <header class="section-header reveal">
+          <div class="section-kicker">Mood Calendar</div>
+          <h2 class="section-title font-sans tracking-tight font-bold text-neutral-900">心情日历</h2>
+          <p class="section-description text-neutral-500 font-normal">每一天的心情都值得被看见，连起来就是我们相伴的温度。</p>
+        </header>
+        <div id="mood-heatmap" class="mood-heatmap" aria-live="polite"><div class="skeleton"></div></div>
+        <div class="mood-legend">
+          <span>较低</span>
+          <span class="mood-cell" style="background:#fbd5e0"></span>
+          <span class="mood-cell" style="background:#f7aac2"></span>
+          <span class="mood-cell" style="background:#ef7fa3"></span>
+          <span class="mood-cell" style="background:#e15281"></span>
+          <span class="mood-cell" style="background:#c2325f"></span>
+          <span>较高</span>
         </div>
       </div>
     </section>
@@ -1690,6 +1881,44 @@
           </form>
 
           <div id="message-list" aria-live="polite"><div class="skeleton"></div></div>
+        </div>
+      </div>
+    </section>
+    <section id="capsules" class="section-band">
+      <div class="site-container">
+        <header class="section-header reveal">
+          <div class="section-kicker">Time Capsule</div>
+          <h2 class="section-title font-sans tracking-tight font-bold text-neutral-900">时间胶囊</h2>
+          <p class="section-description text-neutral-500 font-normal">写给未来的信，被封存在时光里，等约定的那天再一起拆开。</p>
+        </header>
+        <div id="capsule-grid" class="capsule-grid" aria-live="polite"><div class="skeleton"></div><div class="skeleton"></div></div>
+      </div>
+    </section>
+
+    <section id="roulette" class="section-band section-band-white">
+      <div class="site-container">
+        <header class="section-header reveal">
+          <div class="section-kicker">Date Roulette</div>
+          <h2 class="section-title font-sans tracking-tight font-bold text-neutral-900">约会转盘</h2>
+          <p class="section-description text-neutral-500 font-normal">不知道下一次去哪？把选择交给一点点小小的浪漫运气。</p>
+        </header>
+        <div class="roulette-wrap reveal">
+          <div id="roulette-display" class="roulette-display">添加一些约会点子，让转盘转起来吧</div>
+          <button id="roulette-spin-button" type="button" class="primary-button"><i data-lucide="dices" class="w-4 h-4"></i><span>开始转动</span></button>
+        </div>
+      </div>
+    </section>
+
+    <section id="quotes" class="section-band">
+      <div class="site-container">
+        <header class="section-header reveal">
+          <div class="section-kicker">Words Of Love</div>
+          <h2 class="section-title font-sans tracking-tight font-bold text-neutral-900">今日情话</h2>
+          <p class="section-description text-neutral-500 font-normal">每天一句想对你说的话，愿这份心动一直都在。</p>
+        </header>
+        <div class="quote-wrap reveal">
+          <blockquote id="quote-card" class="quote-card">正在挑选今天的情话…</blockquote>
+          <button id="quote-shuffle-button" type="button" class="secondary-button"><i data-lucide="shuffle" class="w-4 h-4"></i><span>换一句</span></button>
         </div>
       </div>
     </section>
@@ -1747,6 +1976,10 @@
         <button class="tab-button" data-tab="admin-anniversaries-panel" type="button">管理纪念日</button>
         <button class="tab-button" data-tab="admin-wishlist-panel" type="button">管理心愿</button>
         <button class="tab-button" data-tab="admin-messages-panel" type="button">管理留言</button>
+        <button class="tab-button" data-tab="admin-capsules-panel" type="button">管理胶囊</button>
+        <button class="tab-button" data-tab="admin-moods-panel" type="button">管理心情</button>
+        <button class="tab-button" data-tab="admin-roulette-panel" type="button">管理转盘</button>
+        <button class="tab-button" data-tab="admin-quotes-panel" type="button">管理情话</button>
         <button class="tab-button" data-tab="admin-security-panel" type="button">安全设置</button>
       </div>
 
@@ -1840,6 +2073,90 @@
 
         <section id="admin-messages-panel" class="tab-panel">
           <div id="admin-message-list"><div class="skeleton"></div></div>
+        </section>
+
+        <section id="admin-capsules-panel" class="tab-panel">
+          <form id="capsule-form">
+            <input id="editing-capsule-id" type="hidden">
+            <div class="flex items-center justify-between gap-4 mb-5">
+              <div>
+                <h3 id="capsule-form-heading" class="m-0 text-[17px] font-bold">写一封给未来的信</h3>
+                <p class="m-0 mt-1 text-[11px]" style="color:var(--faint)">选一个开启日期，在那一天之前内容会一直保密。</p>
+              </div>
+              <button id="cancel-capsule-edit-button" class="secondary-button hidden" type="button">取消编辑</button>
+            </div>
+            <div class="grid md:grid-cols-2 gap-4">
+              <div><label class="field-label" for="capsule-title-input">标题</label><input id="capsule-title-input" class="field" maxlength="40" required></div>
+              <div><label class="field-label" for="capsule-date-input">开启日期</label><input id="capsule-date-input" type="date" class="field" required></div>
+            </div>
+            <div class="mt-4"><label class="field-label" for="capsule-body-input">信的内容</label><textarea id="capsule-body-input" class="field" maxlength="2000" required></textarea></div>
+            <button id="capsule-submit-button" class="primary-button w-full mt-5" type="submit"><i data-lucide="plus" class="w-4 h-4"></i><span>封存这封信</span></button>
+          </form>
+          <div class="mt-9 pt-7 border-t" style="border-color:var(--line)">
+            <div class="flex items-center justify-between gap-3 mb-4">
+              <h3 class="m-0 text-[16px] font-bold">已有胶囊</h3>
+              <span id="admin-capsules-count" class="text-[11px]" style="color:var(--faint)"></span>
+            </div>
+            <div id="admin-capsules-list" class="admin-timeline-list"><div class="skeleton"></div></div>
+          </div>
+        </section>
+
+        <section id="admin-moods-panel" class="tab-panel">
+          <form id="mood-form">
+            <div class="mb-5">
+              <h3 class="m-0 text-[17px] font-bold">记录今天的心情</h3>
+              <p class="m-0 mt-1 text-[11px]" style="color:var(--faint)">同一天再次提交会覆盖之前的记录。</p>
+            </div>
+            <div class="grid md:grid-cols-2 gap-4">
+              <div><label class="field-label" for="mood-date-input">日期</label><input id="mood-date-input" type="date" class="field" required></div>
+              <div><label class="field-label" for="mood-level-input">心情等级</label><select id="mood-level-input" class="field"><option value="1">1 · 低落</option><option value="2">2 · 平淡</option><option value="3" selected>3 · 还好</option><option value="4">4 · 开心</option><option value="5">5 · 很棒</option></select></div>
+            </div>
+            <div class="mt-4"><label class="field-label" for="mood-note-input">小记（可选）</label><input id="mood-note-input" class="field" maxlength="100" placeholder="今天发生了什么呢"></div>
+            <button id="mood-submit-button" class="primary-button w-full mt-5" type="submit"><i data-lucide="heart" class="w-4 h-4"></i><span>记下这一天</span></button>
+          </form>
+          <div class="mt-9 pt-7 border-t" style="border-color:var(--line)">
+            <div class="flex items-center justify-between gap-3 mb-4">
+              <h3 class="m-0 text-[16px] font-bold">最近的心情</h3>
+              <span id="admin-moods-count" class="text-[11px]" style="color:var(--faint)"></span>
+            </div>
+            <div id="admin-moods-list" class="admin-timeline-list"><div class="skeleton"></div></div>
+          </div>
+        </section>
+
+        <section id="admin-roulette-panel" class="tab-panel">
+          <form id="date-idea-form">
+            <div class="mb-5">
+              <h3 class="m-0 text-[17px] font-bold">添加一个约会点子</h3>
+              <p class="m-0 mt-1 text-[11px]" style="color:var(--faint)">都会出现在约会转盘里，交给运气选一个。</p>
+            </div>
+            <div><label class="field-label" for="date-idea-input">点子内容</label><input id="date-idea-input" class="field" maxlength="60" required></div>
+            <button id="date-idea-submit-button" class="primary-button w-full mt-5" type="submit"><i data-lucide="plus" class="w-4 h-4"></i><span>加入转盘</span></button>
+          </form>
+          <div class="mt-9 pt-7 border-t" style="border-color:var(--line)">
+            <div class="flex items-center justify-between gap-3 mb-4">
+              <h3 class="m-0 text-[16px] font-bold">已有点子</h3>
+              <span id="admin-date-ideas-count" class="text-[11px]" style="color:var(--faint)"></span>
+            </div>
+            <div id="admin-date-ideas-list" class="admin-timeline-list"><div class="skeleton"></div></div>
+          </div>
+        </section>
+
+        <section id="admin-quotes-panel" class="tab-panel">
+          <form id="quote-form">
+            <div class="mb-5">
+              <h3 class="m-0 text-[17px] font-bold">添加一句情话</h3>
+              <p class="m-0 mt-1 text-[11px]" style="color:var(--faint)">每天会按日期自动展示一句，也可手动换一句。</p>
+            </div>
+            <div><label class="field-label" for="quote-input">情话内容</label><input id="quote-input" class="field" maxlength="140" required></div>
+            <button id="quote-submit-button" class="primary-button w-full mt-5" type="submit"><i data-lucide="plus" class="w-4 h-4"></i><span>加入情话</span></button>
+          </form>
+          <div class="mt-9 pt-7 border-t" style="border-color:var(--line)">
+            <div class="flex items-center justify-between gap-3 mb-4">
+              <h3 class="m-0 text-[16px] font-bold">已有情话</h3>
+              <span id="admin-quotes-count" class="text-[11px]" style="color:var(--faint)"></span>
+            </div>
+            <div id="admin-quotes-list" class="admin-timeline-list"><div class="skeleton"></div></div>
+          </div>
         </section>
 
         <section id="admin-security-panel" class="tab-panel">

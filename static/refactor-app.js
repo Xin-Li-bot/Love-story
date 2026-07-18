@@ -9,6 +9,11 @@
       adminSessionChecked: false,
       wishes: [],
       anniversaries: [],
+      messages: [],
+      capsules: [],
+      moods: [],
+      dateIdeas: [],
+      quotes: [],
       musicPlaying: false
     };
 
@@ -320,9 +325,202 @@
       observeRevealElements();
     }
 
+    function renderDashboard() {
+      const grid = $('#dashboard-grid');
+      if (!grid) return;
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const days = Math.max(0, daysBetween(ANNIVERSARY, today));
+      const wishesDone = (state.wishes || []).filter(item => item.completed).length;
+      const tiles = [
+        { icon: 'heart', number: formatInteger(days), label: '相恋天数' },
+        { icon: 'clock', number: formatInteger((state.timeline || []).length), label: '时光记忆' },
+        { icon: 'image', number: formatInteger((state.photos || []).length), label: '相册照片' },
+        { icon: 'sparkles', number: `${formatInteger(wishesDone)}/${formatInteger((state.wishes || []).length)}`, label: '心愿达成' },
+        { icon: 'calendar-heart', number: formatInteger((state.anniversaries || []).length), label: '纪念日' },
+        { icon: 'mail', number: formatInteger((state.messages || []).length), label: '收到祝福' }
+      ];
+      grid.innerHTML = tiles.map(tile => `
+        <div class="stat-tile reveal">
+          <span class="stat-icon"><i data-lucide="${tile.icon}" class="w-5 h-5"></i></span>
+          <span class="stat-number">${escapeHtml(tile.number)}</span>
+          <span class="stat-label">${escapeHtml(tile.label)}</span>
+        </div>`).join('');
+      refreshIcons();
+      observeRevealElements();
+    }
+
+    async function loadCapsules() {
+      try {
+        const items = await apiRequest('/api/capsules');
+        state.capsules = items;
+        renderCapsules(items);
+      } catch (error) {
+        const grid = $('#capsule-grid');
+        if (grid) grid.innerHTML = `<p class="text-center text-[14px]" style="color:var(--muted)">${escapeHtml(error.message)}</p>`;
+      }
+    }
+
+    function renderCapsules(items) {
+      const grid = $('#capsule-grid');
+      if (!grid) return;
+      if (!items.length) {
+        grid.innerHTML = '<p class="text-center text-[14px]" style="color:var(--muted)">还没有时间胶囊，去后台写一封给未来的信吧。</p>';
+        return;
+      }
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      grid.innerHTML = items.map(item => {
+        if (item.locked) {
+          const unlock = new Date(`${item.unlock_date}T00:00:00`);
+          const remaining = Math.max(0, daysBetween(today, unlock));
+          return `<article class="capsule-card locked reveal">
+            <div class="capsule-head"><span class="capsule-icon"><i data-lucide="lock" class="w-5 h-5"></i></span><strong class="capsule-title">${escapeHtml(item.title)}</strong></div>
+            <p class="capsule-locked-copy">这封信还在等待被开启</p>
+            <div class="capsule-countdown"><span class="capsule-count">${escapeHtml(formatInteger(remaining))}</span><span class="capsule-count-label">天后开启 · ${escapeHtml(formatDate(item.unlock_date))}</span></div>
+          </article>`;
+        }
+        return `<article class="capsule-card reveal">
+          <div class="capsule-head"><span class="capsule-icon open"><i data-lucide="mail-open" class="w-5 h-5"></i></span><strong class="capsule-title">${escapeHtml(item.title)}</strong></div>
+          <p class="capsule-body">${escapeHtml(item.body)}</p>
+          <span class="capsule-date">开启于 ${escapeHtml(formatDate(item.unlock_date))}</span>
+        </article>`;
+      }).join('');
+      refreshIcons();
+      observeRevealElements();
+    }
+
+    const MOOD_COLORS = ['#f3f4f6', '#fbd5e0', '#f7aac2', '#ef7fa3', '#e15281', '#c2325f'];
+
+    async function loadMoods() {
+      try {
+        const items = await apiRequest('/api/moods');
+        state.moods = items;
+        renderMoodHeatmap(items);
+      } catch (error) {
+        const wrap = $('#mood-heatmap');
+        if (wrap) wrap.innerHTML = `<p class="text-center text-[14px]" style="color:var(--muted)">${escapeHtml(error.message)}</p>`;
+      }
+    }
+
+    function renderMoodHeatmap(items) {
+      const wrap = $('#mood-heatmap');
+      if (!wrap) return;
+      const levelByDate = {};
+      const noteByDate = {};
+      items.forEach(mood => { levelByDate[mood.date] = mood.level; noteByDate[mood.date] = mood.note || ''; });
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const start = new Date(today);
+      start.setDate(start.getDate() - 363);
+      start.setDate(start.getDate() - start.getDay());
+      const cursor = new Date(start);
+      const columns = [];
+      while (cursor <= today) {
+        const week = [];
+        for (let day = 0; day < 7; day += 1) {
+          if (cursor > today) {
+            week.push(null);
+          } else {
+            const iso = `${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, '0')}-${String(cursor.getDate()).padStart(2, '0')}`;
+            week.push({ iso, level: levelByDate[iso] || 0, note: noteByDate[iso] || '' });
+          }
+          cursor.setDate(cursor.getDate() + 1);
+        }
+        columns.push(week);
+      }
+      wrap.innerHTML = columns.map(week => `<div class="mood-week">${week.map(cell => {
+        if (!cell) return '<span class="mood-cell empty"></span>';
+        const label = cell.level ? `${cell.iso}：心情 ${cell.level}/5${cell.note ? ' · ' + cell.note : ''}` : `${cell.iso}：暂无记录`;
+        return `<span class="mood-cell" style="background:${MOOD_COLORS[cell.level]}" title="${escapeHtml(label)}"></span>`;
+      }).join('')}</div>`).join('');
+    }
+
+    let rouletteTimer;
+    async function loadDateIdeas() {
+      try {
+        const items = await apiRequest('/api/date-ideas');
+        state.dateIdeas = items;
+        renderRoulette();
+      } catch (error) {
+        const display = $('#roulette-display');
+        if (display) display.textContent = error.message;
+      }
+    }
+
+    function renderRoulette() {
+      const display = $('#roulette-display');
+      const button = $('#roulette-spin-button');
+      if (!display) return;
+      if (!state.dateIdeas.length) {
+        display.textContent = '还没有约会点子，去后台添加一些吧';
+        delete display.dataset.picked;
+        if (button) button.disabled = true;
+        return;
+      }
+      if (button) button.disabled = false;
+      if (!display.dataset.picked) display.textContent = '点击下面的按钮，交给缘分决定';
+    }
+
+    function spinRoulette() {
+      const ideas = state.dateIdeas;
+      if (!ideas.length) return;
+      const display = $('#roulette-display');
+      const button = $('#roulette-spin-button');
+      if (!display) return;
+      clearInterval(rouletteTimer);
+      display.classList.add('spinning');
+      if (button) button.disabled = true;
+      let ticks = 0;
+      const total = 18 + Math.floor(Math.random() * (ideas.length + 4));
+      rouletteTimer = setInterval(() => {
+        display.textContent = ideas[Math.floor(Math.random() * ideas.length)].text;
+        ticks += 1;
+        if (ticks >= total) {
+          clearInterval(rouletteTimer);
+          display.textContent = ideas[Math.floor(Math.random() * ideas.length)].text;
+          display.dataset.picked = '1';
+          display.classList.remove('spinning');
+          if (button) button.disabled = false;
+          showToast('今天就这样约定啦');
+        }
+      }, 80);
+    }
+
+    async function loadLoveQuotes() {
+      try {
+        const items = await apiRequest('/api/love-quotes');
+        state.quotes = items;
+        renderLoveQuote(false);
+      } catch (error) {
+        const card = $('#quote-card');
+        if (card) card.textContent = error.message;
+      }
+    }
+
+    function renderLoveQuote(randomize) {
+      const card = $('#quote-card');
+      const button = $('#quote-shuffle-button');
+      if (!card) return;
+      if (!state.quotes.length) {
+        card.textContent = '还没有情话，去后台写下第一句吧。';
+        if (button) button.disabled = true;
+        return;
+      }
+      if (button) button.disabled = false;
+      let index;
+      if (randomize) {
+        index = Math.floor(Math.random() * state.quotes.length);
+      } else {
+        index = Math.floor(Date.now() / 86400000) % state.quotes.length;
+      }
+      card.textContent = state.quotes[index].text;
+    }
+
     async function loadMessages() {
       try {
         const messages = await apiRequest('/api/messages');
+        state.messages = messages;
         renderMessages(messages);
       } catch (error) {
         $('#message-list').innerHTML = `<p class="text-[14px]" style="color:var(--muted)">${escapeHtml(error.message)}</p>`;
@@ -658,6 +856,10 @@
       loadAdminTimeline();
       loadAdminAnniversaries();
       loadAdminWishlist();
+      loadAdminCapsules();
+      loadAdminMoods();
+      loadAdminDateIdeas();
+      loadAdminQuotes();
     }
 
     async function logoutAdmin() {
@@ -1058,6 +1260,282 @@
       }
     }
 
+    async function loadAdminCapsules() {
+      if (!state.adminAuthenticated) return;
+      try {
+        const items = await apiRequest('/api/admin/capsules');
+        state.capsules = items;
+        const container = $('#admin-capsules-list');
+        $('#admin-capsules-count').textContent = `${items.length} 封`;
+        container.innerHTML = items.length ? items.map(item => `
+          <div class="flex items-center gap-4 py-4 border-b" style="border-color:var(--line)">
+            <div class="min-w-0 flex-1">
+              <div class="truncate text-[13px] font-semibold">${escapeHtml(item.title)}</div>
+              <div class="mt-1 text-[11px]" style="color:var(--muted)">${escapeHtml(formatDate(item.unlock_date))}${item.locked ? ' · 未开启' : ' · 已开启'}</div>
+            </div>
+            <button class="icon-button admin-capsule-edit-button" type="button" data-capsule-id="${escapeHtml(String(item.id))}" title="编辑胶囊" aria-label="编辑 ${escapeHtml(item.title)}"><i data-lucide="pencil" class="w-4 h-4"></i></button>
+            <button class="icon-button admin-capsule-delete-button" type="button" data-capsule-id="${escapeHtml(String(item.id))}" title="删除胶囊" aria-label="删除 ${escapeHtml(item.title)}"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+          </div>`).join('') : '<p class="text-[13px]" style="color:var(--muted)">还没有时间胶囊。</p>';
+        $$('.admin-capsule-edit-button', container).forEach(button => {
+          button.addEventListener('click', () => startCapsuleEdit(button.dataset.capsuleId));
+        });
+        $$('.admin-capsule-delete-button', container).forEach(button => {
+          button.addEventListener('click', () => deleteCapsule(button.dataset.capsuleId));
+        });
+        refreshIcons();
+      } catch (error) {
+        handleAdminError(error);
+      }
+    }
+
+    function resetCapsuleForm() {
+      $('#capsule-form').reset();
+      $('#editing-capsule-id').value = '';
+      $('#capsule-form-heading').textContent = '写一封给未来的信';
+      $('#capsule-submit-button').innerHTML = '<i data-lucide="plus" class="w-4 h-4"></i><span>封存这封信</span>';
+      $('#cancel-capsule-edit-button').classList.add('hidden');
+      refreshIcons();
+    }
+
+    function startCapsuleEdit(capsuleId) {
+      const item = (state.capsules || []).find(entry => String(entry.id) === String(capsuleId));
+      if (!item) {
+        showToast('未找到这个胶囊，请刷新后重试');
+        return;
+      }
+      $('#editing-capsule-id').value = item.id;
+      $('#capsule-title-input').value = item.title;
+      $('#capsule-body-input').value = item.body || '';
+      $('#capsule-date-input').value = item.unlock_date;
+      $('#capsule-form-heading').textContent = '编辑这封信';
+      $('#capsule-submit-button').innerHTML = '<i data-lucide="save" class="w-4 h-4"></i><span>保存修改</span>';
+      $('#cancel-capsule-edit-button').classList.remove('hidden');
+      refreshIcons();
+      $('#capsule-form').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    async function submitCapsule(event) {
+      event.preventDefault();
+      const editId = $('#editing-capsule-id').value;
+      const submitButton = $('#capsule-submit-button');
+      submitButton.disabled = true;
+      try {
+        const payload = {
+          title: $('#capsule-title-input').value.trim(),
+          body: $('#capsule-body-input').value.trim(),
+          unlock_date: $('#capsule-date-input').value
+        };
+        await apiRequest(editId ? `/api/admin/capsules/${encodeURIComponent(editId)}` : '/api/capsules', {
+          method: editId ? 'PUT' : 'POST',
+          headers: { ...adminHeaders(), 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        resetCapsuleForm();
+        await loadCapsules();
+        await loadAdminCapsules();
+        showToast(editId ? '这封信已经更新' : '这封信已经封存');
+      } catch (error) {
+        handleAdminError(error);
+      } finally {
+        submitButton.disabled = false;
+      }
+    }
+
+    async function deleteCapsule(capsuleId) {
+      const item = (state.capsules || []).find(entry => String(entry.id) === String(capsuleId));
+      if (!item || !confirm(`确定删除胶囊“${item.title}”吗？此操作无法恢复。`)) return;
+      try {
+        await apiRequest(`/api/admin/capsules/${encodeURIComponent(capsuleId)}`, {
+          method: 'DELETE',
+          headers: adminHeaders()
+        });
+        if ($('#editing-capsule-id').value === String(capsuleId)) resetCapsuleForm();
+        await loadCapsules();
+        await loadAdminCapsules();
+        showToast('这封信已经删除');
+      } catch (error) {
+        handleAdminError(error);
+      }
+    }
+
+    async function loadAdminMoods() {
+      if (!state.adminAuthenticated) return;
+      try {
+        const items = await apiRequest('/api/moods');
+        state.moods = items;
+        const container = $('#admin-moods-list');
+        $('#admin-moods-count').textContent = `${items.length} 天记录`;
+        const recent = [...items].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 30);
+        container.innerHTML = recent.length ? recent.map(mood => `
+          <div class="flex items-center gap-4 py-3 border-b" style="border-color:var(--line)">
+            <span class="mood-cell" style="background:${MOOD_COLORS[mood.level]}"></span>
+            <div class="min-w-0 flex-1">
+              <div class="text-[13px] font-semibold">${escapeHtml(mood.date)} · 心情 ${escapeHtml(String(mood.level))}/5</div>
+              ${mood.note ? `<div class="mt-1 truncate text-[11px]" style="color:var(--muted)">${escapeHtml(mood.note)}</div>` : ''}
+            </div>
+            <button class="icon-button admin-mood-delete-button" type="button" data-mood-date="${escapeHtml(mood.date)}" title="删除记录" aria-label="删除 ${escapeHtml(mood.date)} 的心情"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+          </div>`).join('') : '<p class="text-[13px]" style="color:var(--muted)">还没有心情记录。</p>';
+        $$('.admin-mood-delete-button', container).forEach(button => {
+          button.addEventListener('click', () => deleteMood(button.dataset.moodDate));
+        });
+        refreshIcons();
+      } catch (error) {
+        handleAdminError(error);
+      }
+    }
+
+    async function submitMood(event) {
+      event.preventDefault();
+      const submitButton = $('#mood-submit-button');
+      submitButton.disabled = true;
+      try {
+        const date = $('#mood-date-input').value;
+        if (!date) { showToast('请选择日期'); return; }
+        const payload = {
+          level: Number($('#mood-level-input').value),
+          note: $('#mood-note-input').value.trim()
+        };
+        await apiRequest(`/api/admin/moods/${encodeURIComponent(date)}`, {
+          method: 'PUT',
+          headers: { ...adminHeaders(), 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        $('#mood-note-input').value = '';
+        await loadMoods();
+        await loadAdminMoods();
+        showToast('这一天的心情已经记录');
+      } catch (error) {
+        handleAdminError(error);
+      } finally {
+        submitButton.disabled = false;
+      }
+    }
+
+    async function deleteMood(moodDate) {
+      if (!confirm(`确定删除 ${moodDate} 的心情记录吗？`)) return;
+      try {
+        await apiRequest(`/api/admin/moods/${encodeURIComponent(moodDate)}`, { method: 'DELETE', headers: adminHeaders() });
+        await loadMoods();
+        await loadAdminMoods();
+        showToast('这天的心情记录已删除');
+      } catch (error) {
+        handleAdminError(error);
+      }
+    }
+
+    async function loadAdminDateIdeas() {
+      if (!state.adminAuthenticated) return;
+      try {
+        const items = await apiRequest('/api/date-ideas');
+        state.dateIdeas = items;
+        renderRoulette();
+        const container = $('#admin-date-ideas-list');
+        $('#admin-date-ideas-count').textContent = `${items.length} 个点子`;
+        container.innerHTML = items.length ? items.map(idea => `
+          <div class="flex items-center gap-4 py-3 border-b" style="border-color:var(--line)">
+            <div class="min-w-0 flex-1 truncate text-[13px] font-semibold">${escapeHtml(idea.text)}</div>
+            <button class="icon-button admin-date-idea-delete-button" type="button" data-idea-id="${escapeHtml(String(idea.id))}" title="删除点子" aria-label="删除 ${escapeHtml(idea.text)}"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+          </div>`).join('') : '<p class="text-[13px]" style="color:var(--muted)">还没有约会点子。</p>';
+        $$('.admin-date-idea-delete-button', container).forEach(button => {
+          button.addEventListener('click', () => deleteDateIdea(button.dataset.ideaId));
+        });
+        refreshIcons();
+      } catch (error) {
+        handleAdminError(error);
+      }
+    }
+
+    async function submitDateIdea(event) {
+      event.preventDefault();
+      const submitButton = $('#date-idea-submit-button');
+      submitButton.disabled = true;
+      try {
+        const payload = { text: $('#date-idea-input').value.trim() };
+        await apiRequest('/api/date-ideas', {
+          method: 'POST',
+          headers: { ...adminHeaders(), 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        $('#date-idea-form').reset();
+        await loadDateIdeas();
+        await loadAdminDateIdeas();
+        showToast('新的约会点子已经加入');
+      } catch (error) {
+        handleAdminError(error);
+      } finally {
+        submitButton.disabled = false;
+      }
+    }
+
+    async function deleteDateIdea(ideaId) {
+      const idea = (state.dateIdeas || []).find(entry => String(entry.id) === String(ideaId));
+      if (!idea || !confirm(`确定删除约会点子“${idea.text}”吗？`)) return;
+      try {
+        await apiRequest(`/api/admin/date-ideas/${encodeURIComponent(ideaId)}`, { method: 'DELETE', headers: adminHeaders() });
+        await loadDateIdeas();
+        await loadAdminDateIdeas();
+        showToast('约会点子已经删除');
+      } catch (error) {
+        handleAdminError(error);
+      }
+    }
+
+    async function loadAdminQuotes() {
+      if (!state.adminAuthenticated) return;
+      try {
+        const items = await apiRequest('/api/love-quotes');
+        state.quotes = items;
+        const container = $('#admin-quotes-list');
+        $('#admin-quotes-count').textContent = `${items.length} 句情话`;
+        container.innerHTML = items.length ? items.map(quote => `
+          <div class="flex items-center gap-4 py-3 border-b" style="border-color:var(--line)">
+            <div class="min-w-0 flex-1 text-[13px]" style="color:var(--ink)">${escapeHtml(quote.text)}</div>
+            <button class="icon-button admin-quote-delete-button" type="button" data-quote-id="${escapeHtml(String(quote.id))}" title="删除情话" aria-label="删除情话"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+          </div>`).join('') : '<p class="text-[13px]" style="color:var(--muted)">还没有情话。</p>';
+        $$('.admin-quote-delete-button', container).forEach(button => {
+          button.addEventListener('click', () => deleteQuote(button.dataset.quoteId));
+        });
+        refreshIcons();
+      } catch (error) {
+        handleAdminError(error);
+      }
+    }
+
+    async function submitQuote(event) {
+      event.preventDefault();
+      const submitButton = $('#quote-submit-button');
+      submitButton.disabled = true;
+      try {
+        const payload = { text: $('#quote-input').value.trim() };
+        await apiRequest('/api/love-quotes', {
+          method: 'POST',
+          headers: { ...adminHeaders(), 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        $('#quote-form').reset();
+        await loadLoveQuotes();
+        await loadAdminQuotes();
+        showToast('新的情话已经加入');
+      } catch (error) {
+        handleAdminError(error);
+      } finally {
+        submitButton.disabled = false;
+      }
+    }
+
+    async function deleteQuote(quoteId) {
+      const quote = (state.quotes || []).find(entry => String(entry.id) === String(quoteId));
+      if (!quote || !confirm('确定删除这句情话吗？')) return;
+      try {
+        await apiRequest(`/api/admin/love-quotes/${encodeURIComponent(quoteId)}`, { method: 'DELETE', headers: adminHeaders() });
+        await loadLoveQuotes();
+        await loadAdminQuotes();
+        showToast('情话已经删除');
+      } catch (error) {
+        handleAdminError(error);
+      }
+    }
+
     async function changeAdminPassword(event) {
       event.preventDefault();
       try {
@@ -1116,6 +1594,13 @@
       bind('#cancel-wishlist-edit-button', 'click', resetWishlistForm);
       bind('#anniversary-form', 'submit', submitAnniversary);
       bind('#cancel-anniversary-edit-button', 'click', resetAnniversaryForm);
+      bind('#capsule-form', 'submit', submitCapsule);
+      bind('#cancel-capsule-edit-button', 'click', resetCapsuleForm);
+      bind('#mood-form', 'submit', submitMood);
+      bind('#date-idea-form', 'submit', submitDateIdea);
+      bind('#quote-form', 'submit', submitQuote);
+      bind('#roulette-spin-button', 'click', spinRoulette);
+      bind('#quote-shuffle-button', 'click', () => renderLoveQuote(true));
 
       bind('#photo-file', 'change', event => {
         const file = event.target.files[0];
@@ -1150,6 +1635,10 @@
           if (button.dataset.tab === 'admin-anniversaries-panel') loadAdminAnniversaries();
           if (button.dataset.tab === 'admin-messages-panel') loadAdminMessages();
           if (button.dataset.tab === 'admin-wishlist-panel') loadAdminWishlist();
+          if (button.dataset.tab === 'admin-capsules-panel') loadAdminCapsules();
+          if (button.dataset.tab === 'admin-moods-panel') loadAdminMoods();
+          if (button.dataset.tab === 'admin-roulette-panel') loadAdminDateIdeas();
+          if (button.dataset.tab === 'admin-quotes-panel') loadAdminQuotes();
         });
       });
 
@@ -1187,7 +1676,8 @@
       observeRevealElements();
       updateRelationshipClock();
       setInterval(updateRelationshipClock, 1000);
-      await Promise.all([loadTimeline(), loadWishlist(), loadAnniversaries(), loadMessages()]);
+      await Promise.all([loadTimeline(), loadWishlist(), loadAnniversaries(), loadMessages(), loadCapsules(), loadMoods(), loadDateIdeas(), loadLoveQuotes()]);
+      renderDashboard();
 
       if (location.hash) {
         requestAnimationFrame(() => {
