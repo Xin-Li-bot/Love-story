@@ -80,7 +80,9 @@ Nginx :80/:443
 - Tailwind CSS 在构建阶段生成 `static/site.css`；浏览器不再运行 Tailwind Play CDN。
 - 主脚本为 `static/app.js`，Lucide 与 canvas-confetti 固定版本并从 `static/vendor/` 同源加载。
 - `app.js` 与 `site.css` 使用 `no-cache` 重新验证；带版本号的 vendor 文件可长缓存，避免发布后旧前端与新 API 错配。
-- 现网实际前端入口为 `static/refactor-app.js` 与 `static/refactor.css`，以 `?v=` 版本号强制刷新（当前 `?v=20260720`，随每次前端发布递增）。
+- 现网实际前端入口为 `static/refactor-app.js` 与 `static/refactor.css`，以 `?v=` 版本号强制刷新（当前 `?v=20260721`，随每次前端发布递增）。
+- 心情日历热力图采用主题感知配色：格子按 `data-level`（0–5）由 CSS 着色，亮/暗色模式分别有对应色阶，并统一加 1px 边框，确保浅色级别在亮色背景、暗色背景下均可辨识。
+- 约会转盘 / 今日情话 / 时间胶囊内置示例内容（仅在对应数据表为空时通过种子脚本一次性写入，不覆盖后台已录入内容）。
 
 自托管 vendor 文件应按 SHA-256 校验，防止手工更新时混入非预期内容：
 

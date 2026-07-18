@@ -9,7 +9,7 @@
 
   <script defer src="/static/vendor/lucide-0.468.0.min.js"></script>
   <script defer src="/static/vendor/canvas-confetti-1.9.3.min.js"></script>
-  <script defer src="/static/refactor-app.js?v=20260720"></script>
+  <script defer src="/static/refactor-app.js?v=20260721"></script>
 
   <style>
     :root {
@@ -1545,10 +1545,24 @@
       width: 12px;
       height: 12px;
       border-radius: 3px;
-      background: var(--rose-soft);
+      background: #ebedf0;
+      border: 1px solid var(--line);
       flex: 0 0 auto;
     }
-    .mood-cell.empty { background: transparent; }
+    .mood-cell.empty { background: transparent; border-color: transparent; }
+    .mood-cell[data-level="0"] { background: #ebedf0; }
+    .mood-cell[data-level="1"] { background: #f7b7c8; }
+    .mood-cell[data-level="2"] { background: #ef8ba7; }
+    .mood-cell[data-level="3"] { background: #e15f88; }
+    .mood-cell[data-level="4"] { background: #c93f6d; }
+    .mood-cell[data-level="5"] { background: #a82b55; }
+    [data-theme="dark"] .mood-cell { border-color: rgba(255, 255, 255, 0.16); }
+    [data-theme="dark"] .mood-cell[data-level="0"] { background: #2a2a2e; }
+    [data-theme="dark"] .mood-cell[data-level="1"] { background: #5c3540; }
+    [data-theme="dark"] .mood-cell[data-level="2"] { background: #86485c; }
+    [data-theme="dark"] .mood-cell[data-level="3"] { background: #b25d78; }
+    [data-theme="dark"] .mood-cell[data-level="4"] { background: #d67e97; }
+    [data-theme="dark"] .mood-cell[data-level="5"] { background: #f0a6b8; }
     .mood-legend {
       display: flex;
       align-items: center;
@@ -1645,7 +1659,7 @@
       text-align: center;
     }
   </style>
-  <link rel="stylesheet" href="/static/refactor.css?v=20260720">
+  <link rel="stylesheet" href="/static/refactor.css?v=20260721">
 </head>
 
 <body>
@@ -1827,11 +1841,11 @@
         <div id="mood-heatmap" class="mood-heatmap" aria-live="polite"><div class="skeleton"></div></div>
         <div class="mood-legend">
           <span>较低</span>
-          <span class="mood-cell" style="background:#fbd5e0"></span>
-          <span class="mood-cell" style="background:#f7aac2"></span>
-          <span class="mood-cell" style="background:#ef7fa3"></span>
-          <span class="mood-cell" style="background:#e15281"></span>
-          <span class="mood-cell" style="background:#c2325f"></span>
+          <span class="mood-cell" data-level="1"></span>
+          <span class="mood-cell" data-level="2"></span>
+          <span class="mood-cell" data-level="3"></span>
+          <span class="mood-cell" data-level="4"></span>
+          <span class="mood-cell" data-level="5"></span>
           <span>较高</span>
         </div>
       </div>

@@ -390,8 +390,6 @@
       observeRevealElements();
     }
 
-    const MOOD_COLORS = ['#f3f4f6', '#fbd5e0', '#f7aac2', '#ef7fa3', '#e15281', '#c2325f'];
-
     async function loadMoods() {
       try {
         const items = await apiRequest('/api/moods');
@@ -432,7 +430,7 @@
       wrap.innerHTML = columns.map(week => `<div class="mood-week">${week.map(cell => {
         if (!cell) return '<span class="mood-cell empty"></span>';
         const label = cell.level ? `${cell.iso}：心情 ${cell.level}/5${cell.note ? ' · ' + cell.note : ''}` : `${cell.iso}：暂无记录`;
-        return `<span class="mood-cell" style="background:${MOOD_COLORS[cell.level]}" title="${escapeHtml(label)}"></span>`;
+        return `<span class="mood-cell" data-level="${cell.level}" title="${escapeHtml(label)}"></span>`;
       }).join('')}</div>`).join('');
     }
 
@@ -1368,7 +1366,7 @@
         const recent = [...items].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 30);
         container.innerHTML = recent.length ? recent.map(mood => `
           <div class="flex items-center gap-4 py-3 border-b" style="border-color:var(--line)">
-            <span class="mood-cell" style="background:${MOOD_COLORS[mood.level]}"></span>
+            <span class="mood-cell" data-level="${mood.level}"></span>
             <div class="min-w-0 flex-1">
               <div class="text-[13px] font-semibold">${escapeHtml(mood.date)} · 心情 ${escapeHtml(String(mood.level))}/5</div>
               ${mood.note ? `<div class="mt-1 truncate text-[11px]" style="color:var(--muted)">${escapeHtml(mood.note)}</div>` : ''}
