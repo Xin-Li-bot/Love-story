@@ -1475,11 +1475,15 @@ def get_admin_capsules(_: Admin) -> list[dict[str, Any]]:
 
 
 @app.post("/api/capsules", status_code=201)
-def add_capsule(item: CapsuleCreate, _: Admin) -> dict[str, Any]:
+def add_capsule(item: CapsuleCreate) -> dict[str, Any]:
+    # 公开写入：任何访客都可以封存一封时间胶囊；编辑/删除仍需管理员。
     record = item.model_dump()
     record["id"] = secrets.token_hex(8)
     now = utc_iso()
     with _data_lock, db_session() as connection:
+        total = connection.execute("SELECT COUNT(*) FROM capsules").fetchone()[0]
+        if total >= 500:
+            raise HTTPException(429, "时间胶囊数量已达上限，暂时无法再添加")
         connection.execute(
             """
             INSERT INTO capsules (id, title, body, unlock_date, created_at, updated_at)
@@ -1532,8 +1536,9 @@ def get_moods() -> list[dict[str, Any]]:
     ]
 
 
-@app.put("/api/admin/moods/{mood_date}")
-def set_mood(mood_date: str, item: MoodPayload, _: Admin) -> dict[str, Any]:
+@app.put("/api/moods/{mood_date}")
+def set_mood(mood_date: str, item: MoodPayload) -> dict[str, Any]:
+    # 公开写入：任何访客都可以记录/更新某一天的心情；删除仍需管理员。
     try:
         datetime.strptime(mood_date, "%Y-%m-%d")
     except ValueError:

@@ -9,7 +9,7 @@
 
   <script defer src="/static/vendor/lucide-0.468.0.min.js"></script>
   <script defer src="/static/vendor/canvas-confetti-1.9.3.min.js"></script>
-  <script defer src="/static/refactor-app.js?v=20260721"></script>
+  <script defer src="/static/refactor-app.js?v=20260722"></script>
 
   <style>
     :root {
@@ -573,7 +573,8 @@
     }
 
     .input-shell input,
-    .input-shell textarea {
+    .input-shell textarea,
+    .input-shell select {
       display: block;
       width: 100%;
       padding: 0;
@@ -584,10 +585,42 @@
       font-size: 15px;
     }
 
+    .input-shell select {
+      -webkit-appearance: none;
+      appearance: none;
+      cursor: pointer;
+    }
+
     .input-shell textarea {
       min-height: 134px;
       resize: vertical;
       line-height: 1.7;
+    }
+
+    .inline-add-form {
+      max-width: 560px;
+      margin: 34px auto 0;
+      padding: 26px;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: var(--paper);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .inline-add-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .inline-add-grid .input-shell:last-child {
+      grid-column: 1 / -1;
+    }
+
+    @media (max-width: 560px) {
+      .inline-add-grid { grid-template-columns: 1fr; }
+      .inline-add-form { padding: 22px; }
     }
 
     .message-bubble {
@@ -1659,7 +1692,7 @@
       text-align: center;
     }
   </style>
-  <link rel="stylesheet" href="/static/refactor.css?v=20260721">
+  <link rel="stylesheet" href="/static/refactor.css?v=20260722">
 </head>
 
 <body>
@@ -1848,6 +1881,29 @@
           <span class="mood-cell" data-level="5"></span>
           <span>较高</span>
         </div>
+        <form id="public-mood-form" class="inline-add-form reveal">
+          <div class="inline-add-grid">
+            <div class="input-shell">
+              <label for="public-mood-date">日期</label>
+              <input id="public-mood-date" type="date" required>
+            </div>
+            <div class="input-shell">
+              <label for="public-mood-level">今天的心情</label>
+              <select id="public-mood-level">
+                <option value="1">1 · 有点低落</option>
+                <option value="2">2 · 平平</option>
+                <option value="3" selected>3 · 还不错</option>
+                <option value="4">4 · 开心</option>
+                <option value="5">5 · 超级好</option>
+              </select>
+            </div>
+            <div class="input-shell">
+              <label for="public-mood-note">小记（可选）</label>
+              <input id="public-mood-note" maxlength="100" placeholder="今天发生了什么">
+            </div>
+          </div>
+          <button id="public-mood-submit" class="primary-button w-full" type="submit"><i data-lucide="check" class="w-4 h-4"></i><span>记录这一天的心情</span></button>
+        </form>
       </div>
     </section>
 
@@ -1906,6 +1962,28 @@
           <p class="section-description text-neutral-500 font-normal">写给未来的信，被封存在时光里，等约定的那天再一起拆开。</p>
         </header>
         <div id="capsule-grid" class="capsule-grid" aria-live="polite"><div class="skeleton"></div><div class="skeleton"></div></div>
+        <form id="public-capsule-form" class="inline-add-form reveal">
+          <div class="flex items-center gap-3 mb-6">
+            <span class="w-11 h-11 grid place-items-center rounded-full" style="color:var(--rose);background:var(--rose-soft)"><i data-lucide="mail-plus" class="w-5 h-5"></i></span>
+            <div>
+              <h3 class="m-0 text-[18px] font-bold">写一封给未来的信</h3>
+              <p class="m-0 mt-1 text-[11px]" style="color:var(--faint)">封存后，到开启日期才会显现内容</p>
+            </div>
+          </div>
+          <div class="input-shell">
+            <label for="public-capsule-title">标题</label>
+            <input id="public-capsule-title" maxlength="40" placeholder="给这封信起个名字" required>
+          </div>
+          <div class="input-shell mt-3">
+            <label for="public-capsule-body">想说的话</label>
+            <textarea id="public-capsule-body" maxlength="2000" placeholder="写给未来的我们…" required></textarea>
+          </div>
+          <div class="input-shell mt-3">
+            <label for="public-capsule-date">开启日期</label>
+            <input id="public-capsule-date" type="date" required>
+          </div>
+          <button id="public-capsule-submit" class="primary-button w-full mt-4" type="submit"><i data-lucide="lock" class="w-4 h-4"></i><span>封存这封信</span></button>
+        </form>
       </div>
     </section>
 

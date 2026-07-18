@@ -434,6 +434,72 @@
       }).join('')}</div>`).join('');
     }
 
+    async function submitPublicMood(event) {
+      event.preventDefault();
+      const button = $('#public-mood-submit');
+      if (button) button.disabled = true;
+      try {
+        const date = $('#public-mood-date').value;
+        if (!date) { showToast('请选择日期'); return; }
+        const payload = {
+          level: Number($('#public-mood-level').value),
+          note: $('#public-mood-note').value.trim()
+        };
+        await apiRequest(`/api/moods/${encodeURIComponent(date)}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        $('#public-mood-note').value = '';
+        await loadMoods();
+        if (state.adminAuthenticated) await loadAdminMoods();
+        showToast('这一天的心情已经记录');
+      } catch (error) {
+        showToast(error.message);
+      } finally {
+        if (button) button.disabled = false;
+      }
+    }
+
+    async function submitPublicCapsule(event) {
+      event.preventDefault();
+      const button = $('#public-capsule-submit');
+      if (button) button.disabled = true;
+      try {
+        const payload = {
+          title: $('#public-capsule-title').value.trim(),
+          body: $('#public-capsule-body').value.trim(),
+          unlock_date: $('#public-capsule-date').value
+        };
+        if (!payload.title || !payload.body || !payload.unlock_date) {
+          showToast('请填写标题、内容和开启日期');
+          return;
+        }
+        await apiRequest('/api/capsules', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        $('#public-capsule-form').reset();
+        await loadCapsules();
+        if (state.adminAuthenticated) await loadAdminCapsules();
+        showToast('这封信已经封存');
+      } catch (error) {
+        showToast(error.message);
+      } finally {
+        if (button) button.disabled = false;
+      }
+    }
+
+    function initInlineAddDefaults() {
+      const now = new Date();
+      const iso = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+      const moodDate = $('#public-mood-date');
+      if (moodDate && !moodDate.value) moodDate.value = iso;
+      const capsuleDate = $('#public-capsule-date');
+      if (capsuleDate) capsuleDate.min = iso;
+    }
+
     let rouletteTimer;
     async function loadDateIdeas() {
       try {
@@ -1393,7 +1459,7 @@
           level: Number($('#mood-level-input').value),
           note: $('#mood-note-input').value.trim()
         };
-        await apiRequest(`/api/admin/moods/${encodeURIComponent(date)}`, {
+        await apiRequest(`/api/moods/${encodeURIComponent(date)}`, {
           method: 'PUT',
           headers: { ...adminHeaders(), 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
@@ -1599,6 +1665,9 @@
       bind('#quote-form', 'submit', submitQuote);
       bind('#roulette-spin-button', 'click', spinRoulette);
       bind('#quote-shuffle-button', 'click', () => renderLoveQuote(true));
+      bind('#public-mood-form', 'submit', submitPublicMood);
+      bind('#public-capsule-form', 'submit', submitPublicCapsule);
+      initInlineAddDefaults();
 
       bind('#photo-file', 'change', event => {
         const file = event.target.files[0];
