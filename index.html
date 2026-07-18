@@ -1011,6 +1011,9 @@
       position: absolute;
       inset: 66px 72px 78px;
       display: grid;
+      /* 定长轨道：让图片的 max-width/max-height:100% 能相对舞台高度解析，
+         避免纵向长图撑破舞台、被 overflow 裁掉下半部分 */
+      grid-template: minmax(0, 1fr) / minmax(0, 1fr);
       place-items: center;
       overflow: hidden;
     }
