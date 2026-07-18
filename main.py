@@ -275,9 +275,19 @@ def _migrate_schema(connection: sqlite3.Connection) -> None:
             height INTEGER NOT NULL,
             created_at TEXT NOT NULL
         );
+        CREATE TABLE IF NOT EXISTS anniversaries (
+            id TEXT PRIMARY KEY,
+            title TEXT NOT NULL,
+            date TEXT NOT NULL,
+            recurring INTEGER NOT NULL DEFAULT 1 CHECK(recurring IN (0, 1)),
+            note TEXT NOT NULL DEFAULT '',
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        );
         CREATE INDEX IF NOT EXISTS idx_admin_sessions_expires
             ON admin_sessions(expires_at);
         CREATE INDEX IF NOT EXISTS idx_timeline_date ON timeline(date);
+        CREATE INDEX IF NOT EXISTS idx_anniversaries_date ON anniversaries(date);
         """
     )
     session_columns = _table_columns(connection, "admin_sessions")
@@ -753,6 +763,52 @@ class WishlistUpdate(BaseModel):
     completed: bool
 
 
+class WishlistCreate(BaseModel):
+    title: str = Field(min_length=1, max_length=80)
+
+    @field_validator("title")
+    @classmethod
+    def clean_title(cls, value: str) -> str:
+        cleaned = value.strip()
+        if not cleaned:
+            raise ValueError("内容不能为空")
+        return cleaned
+
+
+class AnniversaryPayload(BaseModel):
+    title: str = Field(min_length=1, max_length=40)
+    date: str
+    recurring: bool = True
+    note: str = Field(default="", max_length=200)
+
+    @field_validator("date")
+    @classmethod
+    def valid_date(cls, value: str) -> str:
+        datetime.strptime(value, "%Y-%m-%d")
+        return value
+
+    @field_validator("title")
+    @classmethod
+    def clean_title(cls, value: str) -> str:
+        cleaned = value.strip()
+        if not cleaned:
+            raise ValueError("内容不能为空")
+        return cleaned
+
+    @field_validator("note")
+    @classmethod
+    def clean_note(cls, value: str) -> str:
+        return value.strip()
+
+
+class AnniversaryCreate(AnniversaryPayload):
+    pass
+
+
+class AnniversaryUpdate(AnniversaryPayload):
+    pass
+
+
 class RequestBodyTooLarge(Exception):
     pass
 
@@ -1150,6 +1206,133 @@ def update_wish(wish_id: int, request: WishlistUpdate, _: Admin) -> dict[str, An
     return _wishlist_dict(row)
 
 
+@app.post("/api/wishlist", status_code=201)
+def add_wish(item: WishlistCreate, _: Admin) -> dict[str, Any]:
+    with _data_lock, db_session() as connection:
+        cursor = connection.execute(
+            "INSERT INTO wishlist (title) VALUES (?)",
+            (item.title,),
+        )
+        row = connection.execute(
+            "SELECT id, title, completed, completed_at FROM wishlist WHERE id = ?",
+            (cursor.lastrowid,),
+        ).fetchone()
+    return _wishlist_dict(row)
+
+
+@app.put("/api/admin/wishlist/{wish_id}")
+def edit_wish(wish_id: int, item: WishlistCreate, _: Admin) -> dict[str, Any]:
+    with _data_lock, db_session() as connection:
+        existing = connection.execute(
+            "SELECT id FROM wishlist WHERE id = ?", (wish_id,)
+        ).fetchone()
+        if existing is None:
+            raise HTTPException(404, "心愿不存在")
+        connection.execute(
+            "UPDATE wishlist SET title = ? WHERE id = ?",
+            (item.title, wish_id),
+        )
+        row = connection.execute(
+            "SELECT id, title, completed, completed_at FROM wishlist WHERE id = ?",
+            (wish_id,),
+        ).fetchone()
+    return _wishlist_dict(row)
+
+
+@app.delete("/api/admin/wishlist/{wish_id}", status_code=204)
+def delete_wish(wish_id: int, _: Admin) -> Response:
+    with _data_lock, db_session() as connection:
+        cursor = connection.execute("DELETE FROM wishlist WHERE id = ?", (wish_id,))
+    if cursor.rowcount == 0:
+        raise HTTPException(404, "心愿不存在")
+    return Response(status_code=204)
+
+
+def _anniversary_dict(row: sqlite3.Row) -> dict[str, Any]:
+    return {
+        "id": row["id"],
+        "title": row["title"],
+        "date": row["date"],
+        "recurring": bool(row["recurring"]),
+        "note": row["note"],
+    }
+
+
+@app.get("/api/anniversaries")
+def get_anniversaries() -> list[dict[str, Any]]:
+    with db_session() as connection:
+        rows = connection.execute(
+            """
+            SELECT id, title, date, recurring, note
+            FROM anniversaries ORDER BY date, id
+            """
+        ).fetchall()
+    return [_anniversary_dict(row) for row in rows]
+
+
+@app.post("/api/anniversaries", status_code=201)
+def add_anniversary(item: AnniversaryCreate, _: Admin) -> dict[str, Any]:
+    record = item.model_dump()
+    record["id"] = secrets.token_hex(8)
+    now = utc_iso()
+    with _data_lock, db_session() as connection:
+        connection.execute(
+            """
+            INSERT INTO anniversaries
+                (id, title, date, recurring, note, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                record["id"],
+                record["title"],
+                record["date"],
+                int(record["recurring"]),
+                record["note"],
+                now,
+                now,
+            ),
+        )
+    return record
+
+
+@app.put("/api/admin/anniversaries/{anniversary_id}")
+def update_anniversary(anniversary_id: str, item: AnniversaryUpdate, _: Admin) -> dict[str, Any]:
+    payload = item.model_dump()
+    with _data_lock, db_session() as connection:
+        existing = connection.execute(
+            "SELECT id FROM anniversaries WHERE id = ?", (anniversary_id,)
+        ).fetchone()
+        if existing is None:
+            raise HTTPException(404, "这个纪念日不存在")
+        connection.execute(
+            """
+            UPDATE anniversaries
+            SET title = ?, date = ?, recurring = ?, note = ?, updated_at = ?
+            WHERE id = ?
+            """,
+            (
+                payload["title"],
+                payload["date"],
+                int(payload["recurring"]),
+                payload["note"],
+                utc_iso(),
+                anniversary_id,
+            ),
+        )
+    return {"id": anniversary_id, **payload}
+
+
+@app.delete("/api/admin/anniversaries/{anniversary_id}", status_code=204)
+def delete_anniversary(anniversary_id: str, _: Admin) -> Response:
+    with _data_lock, db_session() as connection:
+        cursor = connection.execute(
+            "DELETE FROM anniversaries WHERE id = ?", (anniversary_id,)
+        )
+    if cursor.rowcount == 0:
+        raise HTTPException(404, "这个纪念日不存在")
+    return Response(status_code=204)
+
+
 @app.post("/api/admin/login")
 def admin_login(login: LoginRequest, response: Response) -> dict[str, Any]:
     with _data_lock, db_session() as connection:
@@ -1376,4 +1559,4 @@ app.mount("/photos", StaticFiles(directory=PHOTOS_DIR, check_dir=False), name="p
 def serve_app() -> FileResponse:
     if not INDEX_PATH.exists():
         raise HTTPException(404, "index.html 不存在")
-    return FileResponse(INDEX_PATH)
+    return FileResponse(INDEX_PATH, headers={"Cache-Control": "no-cache"})

@@ -31,3 +31,8 @@ node_modules/
 *.bak
 *.tmp
 backups/
+
+# Deployment backups created by the atomic install pipeline.
+*.predeploy.*
+*.bak.*
+*.pre-*

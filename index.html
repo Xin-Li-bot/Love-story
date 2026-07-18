@@ -7,7 +7,1501 @@
   <meta name="description" content="李欣与王雅婷的恋爱纪念站，收藏我们共同走过的日子。">
   <title>李欣 & 王雅婷 · 我们的故事</title>
 
-  <link rel="stylesheet" href="/static/site.css">
+  <script defer src="/static/vendor/lucide-0.468.0.min.js"></script>
+  <script defer src="/static/vendor/canvas-confetti-1.9.3.min.js"></script>
+  <script defer src="/static/refactor-app.js?v=20260719"></script>
+
+  <style>
+    :root {
+      --page: #f5f5f7;
+      --paper: #ffffff;
+      --paper-soft: #fafafa;
+      --ink: #1d1d1f;
+      --muted: #6e6e73;
+      --faint: #a1a1a6;
+      --line: rgba(29, 29, 31, 0.09);
+      --rose: #ad7480;
+      --rose-deep: #895762;
+      --rose-soft: #f4e8ea;
+      --green: #668272;
+      --shadow-sm: 0 4px 20px rgba(0, 0, 0, 0.03);
+      --shadow-md: 0 12px 30px rgba(0, 0, 0, 0.08);
+    }
+
+    [data-theme="dark"] {
+      --page: #000000;
+      --paper: #111113;
+      --paper-soft: #18181a;
+      --ink: #f5f5f7;
+      --muted: #a1a1a6;
+      --faint: #737378;
+      --line: rgba(255, 255, 255, 0.1);
+      --rose: #d49aa5;
+      --rose-deep: #e3aeb7;
+      --rose-soft: #291c1f;
+      --green: #8ca797;
+      --shadow-sm: 0 4px 24px rgba(0, 0, 0, 0.22);
+      --shadow-md: 0 18px 42px rgba(0, 0, 0, 0.4);
+    }
+
+    * {
+      box-sizing: border-box;
+      letter-spacing: 0;
+    }
+
+    html {
+      background: var(--page);
+      scroll-padding-top: 84px;
+    }
+
+    body {
+      margin: 0;
+      background: var(--page);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", "PingFang SC", "Microsoft YaHei", sans-serif;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+      overflow-x: hidden;
+    }
+
+    body.modal-open {
+      overflow: hidden;
+    }
+
+    button,
+    input,
+    textarea {
+      font: inherit;
+    }
+
+    button:focus-visible,
+    a:focus-visible,
+    input:focus-visible,
+    textarea:focus-visible {
+      outline: 2px solid var(--rose);
+      outline-offset: 3px;
+    }
+
+    ::selection {
+      color: var(--ink);
+      background: var(--rose-soft);
+    }
+
+    .site-container {
+      width: min(1180px, calc(100% - 48px));
+      margin-inline: auto;
+    }
+
+    .nav-glass {
+      background: rgba(255, 255, 255, 0.7);
+      -webkit-backdrop-filter: saturate(180%) blur(20px);
+      backdrop-filter: saturate(180%) blur(20px);
+    }
+
+    [data-theme="dark"] .nav-glass {
+      background: rgba(8, 8, 9, 0.76);
+    }
+
+    .hero {
+      position: relative;
+      min-height: min(780px, calc(100svh - 72px));
+      display: flex;
+      align-items: flex-end;
+      overflow: hidden;
+      isolation: isolate;
+      background: #19191b;
+    }
+
+    .hero-image {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 45%;
+      z-index: -3;
+      transform: scale(1.01);
+    }
+
+    .hero-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: -2;
+      background:
+        linear-gradient(90deg, rgba(0, 0, 0, 0.73) 0%, rgba(0, 0, 0, 0.34) 48%, rgba(0, 0, 0, 0.08) 76%),
+        linear-gradient(0deg, rgba(0, 0, 0, 0.62) 0%, transparent 58%);
+    }
+
+    .hero-content {
+      width: min(720px, 100%);
+      padding: 108px 0 104px;
+      color: #ffffff;
+    }
+
+    .hero-title {
+      max-width: 680px;
+      margin: 0;
+      font-size: clamp(50px, 7.2vw, 92px);
+      line-height: 1.02;
+      font-weight: 760;
+    }
+
+    .hero-copy {
+      max-width: 570px;
+      margin: 24px 0 0;
+      color: rgba(255, 255, 255, 0.78);
+      font-size: clamp(15px, 1.5vw, 18px);
+      line-height: 1.8;
+    }
+
+    .dashboard-wrap {
+      position: relative;
+      z-index: 5;
+      margin-top: -64px;
+      padding-bottom: 118px;
+    }
+
+    .dashboard-card {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(360px, 0.85fr);
+      overflow: hidden;
+      background: color-mix(in srgb, var(--paper) 95%, transparent);
+      border: 1px solid color-mix(in srgb, var(--paper) 65%, var(--line));
+      border-radius: 28px;
+      box-shadow: 0 28px 80px rgba(0, 0, 0, 0.12);
+      -webkit-backdrop-filter: blur(24px);
+      backdrop-filter: blur(24px);
+    }
+
+    .dashboard-main {
+      padding: clamp(36px, 6vw, 72px);
+    }
+
+    .dashboard-side {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: clamp(34px, 5vw, 62px);
+      border-left: 1px solid var(--line);
+      background: var(--paper-soft);
+    }
+
+    .days-number {
+      margin: 14px 0 0;
+      font-size: clamp(78px, 12vw, 150px);
+      line-height: 0.9;
+      font-weight: 770;
+      font-variant-numeric: tabular-nums;
+      color: var(--ink);
+    }
+
+    .countdown-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 24px;
+    }
+
+    .countdown-unit {
+      min-width: 0;
+      padding: 15px 8px 13px;
+      text-align: center;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--paper);
+    }
+
+    .countdown-number {
+      display: block;
+      font-size: clamp(22px, 3vw, 32px);
+      line-height: 1;
+      font-weight: 710;
+      font-variant-numeric: tabular-nums;
+      color: var(--ink);
+    }
+
+    .countdown-label {
+      display: block;
+      margin-top: 8px;
+      color: var(--faint);
+      font-size: 10px;
+      font-weight: 650;
+    }
+
+    .section-band {
+      padding: 126px 0;
+    }
+
+    .section-band-white {
+      background: var(--paper);
+    }
+
+    .section-header {
+      max-width: 720px;
+      margin: 0 auto 72px;
+      text-align: center;
+    }
+
+    .section-kicker {
+      color: var(--rose);
+      font-size: 11px;
+      font-weight: 750;
+      text-transform: uppercase;
+    }
+
+    .section-title {
+      margin: 12px 0 0;
+      color: var(--ink);
+      font-size: clamp(40px, 6vw, 66px);
+      line-height: 1.05;
+      font-weight: 760;
+    }
+
+    .section-description {
+      max-width: 610px;
+      margin: 20px auto 0;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.9;
+    }
+
+    .timeline {
+      position: relative;
+      max-width: 1080px;
+      margin: 0 auto;
+    }
+
+    .timeline::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 50%;
+      width: 1px;
+      background: linear-gradient(to bottom, transparent, var(--line) 4%, var(--line) 96%, transparent);
+      transform: translateX(-50%);
+    }
+
+    .timeline-row {
+      position: relative;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 86px;
+      margin-bottom: 54px;
+    }
+
+    .timeline-row::after {
+      content: "";
+      position: absolute;
+      top: 35px;
+      left: 50%;
+      width: 13px;
+      height: 13px;
+      border: 3px solid var(--rose);
+      border-radius: 50%;
+      background: var(--page);
+      box-shadow: 0 0 0 8px color-mix(in srgb, var(--rose) 12%, transparent);
+      transform: translateX(-50%);
+    }
+
+    .timeline-card,
+    .gallery-card,
+    .wish-card,
+    .message-compose,
+    .message-bubble {
+      border-radius: 24px;
+      box-shadow: var(--shadow-sm);
+      transition: transform 500ms ease-out, box-shadow 500ms ease-out, border-color 500ms ease-out;
+    }
+
+    .timeline-card:hover,
+    .gallery-card:hover,
+    .wish-card:hover,
+    .message-compose:hover,
+    .message-bubble:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .timeline-card {
+      overflow: hidden;
+      border: 1px solid var(--line);
+      background: color-mix(in srgb, var(--paper) 92%, transparent);
+      -webkit-backdrop-filter: blur(18px);
+      backdrop-filter: blur(18px);
+    }
+
+    .timeline-image-button {
+      display: block;
+      width: 100%;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      cursor: zoom-in;
+      overflow: hidden;
+    }
+
+    .timeline-image {
+      display: block;
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      object-fit: cover;
+      transition: transform 650ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .timeline-image-button:hover .timeline-image {
+      transform: scale(1.055);
+    }
+
+    .memory-photo-note {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      margin-top: 16px;
+      padding: 7px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--faint);
+      background: var(--paper-soft);
+      font-size: 11px;
+      line-height: 1;
+    }
+
+    .timeline-card-body {
+      padding: 28px 30px 31px;
+    }
+
+    .timeline-date {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      color: var(--rose);
+      font-size: 11px;
+      font-weight: 750;
+    }
+
+    .timeline-title {
+      margin: 12px 0 10px;
+      color: var(--ink);
+      font-size: 21px;
+      line-height: 1.35;
+      font-weight: 720;
+    }
+
+    .timeline-copy {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.85;
+    }
+
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      grid-auto-rows: 205px;
+      gap: 16px;
+    }
+
+    .gallery-card {
+      position: relative;
+      grid-column: span 4;
+      overflow: hidden;
+      padding: 0;
+      border: 0;
+      background: var(--paper-soft);
+      cursor: zoom-in;
+    }
+
+    .gallery-card:nth-child(1),
+    .gallery-card:nth-child(8) {
+      grid-column: span 8;
+      grid-row: span 2;
+    }
+
+    .gallery-card:nth-child(4),
+    .gallery-card:nth-child(10) {
+      grid-row: span 2;
+    }
+
+    .gallery-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .gallery-card:hover .gallery-image {
+      transform: scale(1.06);
+    }
+
+    .gallery-caption {
+      position: absolute;
+      inset: auto 0 0;
+      padding: 54px 18px 17px;
+      color: #ffffff;
+      text-align: left;
+      font-size: 13px;
+      font-weight: 650;
+      background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
+      opacity: 0;
+      transition: opacity 350ms ease;
+    }
+
+    .gallery-card:hover .gallery-caption,
+    .gallery-card:focus-visible .gallery-caption {
+      opacity: 1;
+    }
+
+    .wishlist-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      max-width: 920px;
+      margin: 0 auto;
+    }
+
+    .wish-card {
+      min-height: 112px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      width: 100%;
+      padding: 24px 25px;
+      color: var(--ink);
+      text-align: left;
+      border: 1px solid var(--line);
+      background: var(--paper);
+      cursor: pointer;
+    }
+
+    .wish-card:hover {
+      border-color: color-mix(in srgb, var(--rose) 40%, var(--line));
+    }
+
+    .wish-icon {
+      width: 42px;
+      height: 42px;
+      display: grid;
+      place-items: center;
+      flex: 0 0 auto;
+      border-radius: 50%;
+      color: var(--rose);
+      background: var(--rose-soft);
+    }
+
+    .wish-checkbox {
+      position: relative;
+      width: 26px;
+      height: 26px;
+      flex: 0 0 auto;
+      border: 1.5px solid #c8c8cc;
+      border-radius: 50%;
+      background: var(--paper);
+      transition: transform 350ms ease, background 350ms ease, border-color 350ms ease;
+    }
+
+    .wish-checkbox svg {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 14px;
+      height: 14px;
+      color: #ffffff;
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(0.4);
+      transition: opacity 250ms ease, transform 350ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .wish-card.completed {
+      color: var(--muted);
+    }
+
+    .wish-card.completed .wish-title {
+      text-decoration: line-through;
+      text-decoration-thickness: 1px;
+      text-decoration-color: var(--faint);
+    }
+
+    .wish-card.completed .wish-checkbox {
+      border-color: var(--green);
+      background: var(--green);
+      transform: scale(1.04);
+    }
+
+    .wish-card.completed .wish-checkbox svg {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    .message-layout {
+      display: grid;
+      grid-template-columns: minmax(310px, 390px) minmax(0, 1fr);
+      gap: 64px;
+      align-items: start;
+    }
+
+    .message-compose {
+      position: sticky;
+      top: 100px;
+      padding: 30px;
+      border: 1px solid var(--line);
+      background: var(--paper);
+    }
+
+    .input-shell {
+      padding: 16px 17px 14px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: var(--paper-soft);
+      transition: border-color 250ms ease, box-shadow 250ms ease, background 250ms ease;
+    }
+
+    .input-shell:focus-within {
+      border-color: color-mix(in srgb, var(--rose) 58%, var(--line));
+      background: var(--paper);
+      box-shadow: 0 0 0 4px color-mix(in srgb, var(--rose) 11%, transparent);
+    }
+
+    .input-shell label {
+      display: block;
+      margin-bottom: 7px;
+      color: var(--faint);
+      font-size: 10px;
+      font-weight: 750;
+      text-transform: uppercase;
+    }
+
+    .input-shell input,
+    .input-shell textarea {
+      display: block;
+      width: 100%;
+      padding: 0;
+      border: 0;
+      outline: 0;
+      color: var(--ink);
+      background: transparent;
+      font-size: 15px;
+    }
+
+    .input-shell textarea {
+      min-height: 134px;
+      resize: vertical;
+      line-height: 1.7;
+    }
+
+    .message-bubble {
+      position: relative;
+      margin-bottom: 16px;
+      padding: 25px 26px 24px;
+      border: 1px solid var(--line);
+      background: var(--paper-soft);
+    }
+
+    .message-bubble::before {
+      content: "";
+      position: absolute;
+      left: -8px;
+      top: 30px;
+      width: 15px;
+      height: 15px;
+      border-left: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      background: var(--paper-soft);
+      transform: rotate(45deg);
+    }
+
+    .primary-button,
+    .secondary-button,
+    .danger-button {
+      min-height: 46px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      padding: 0 20px;
+      border-radius: 999px;
+      border: 1px solid transparent;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      /* Apple §1: transform 反馈保持在 100ms 内，其余视觉过渡稍慢不影响手感 */
+      transition: transform 100ms ease-out, box-shadow 250ms ease, background 250ms ease, color 250ms ease;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Apple §1: 按下瞬间即反馈（对触屏同样生效，hover 在触屏不触发） */
+    .primary-button:active,
+    .secondary-button:active,
+    .danger-button:active {
+      transform: scale(0.96);
+      transition-duration: 60ms;
+    }
+
+    .icon-button:active {
+      transform: scale(0.9);
+      transition-duration: 60ms;
+    }
+
+    .primary-button {
+      color: #ffffff;
+      background: var(--rose);
+    }
+
+    .primary-button:hover {
+      background: var(--rose-deep);
+      box-shadow: 0 10px 26px color-mix(in srgb, var(--rose) 26%, transparent);
+      transform: translateY(-1px);
+    }
+
+    .secondary-button {
+      color: var(--ink);
+      border-color: var(--line);
+      background: var(--paper);
+    }
+
+    .secondary-button:hover {
+      background: var(--paper-soft);
+      transform: translateY(-1px);
+    }
+
+    .danger-button {
+      color: #cc4653;
+      border-color: color-mix(in srgb, #cc4653 28%, transparent);
+      background: transparent;
+    }
+
+    .field {
+      width: 100%;
+      min-height: 48px;
+      padding: 12px 14px;
+      color: var(--ink);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      outline: 0;
+      background: var(--paper-soft);
+      transition: border-color 250ms ease, box-shadow 250ms ease, background 250ms ease;
+    }
+
+    textarea.field {
+      min-height: 120px;
+      resize: vertical;
+    }
+
+    .field:focus {
+      border-color: color-mix(in srgb, var(--rose) 62%, var(--line));
+      background: var(--paper);
+      box-shadow: 0 0 0 4px color-mix(in srgb, var(--rose) 11%, transparent);
+    }
+
+    .field-label {
+      display: block;
+      margin-bottom: 7px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 650;
+    }
+
+    .music-dock {
+      position: fixed;
+      right: max(22px, env(safe-area-inset-right));
+      bottom: max(22px, env(safe-area-inset-bottom));
+      z-index: 70;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 10px 8px 8px;
+      border: 1px solid rgba(255, 255, 255, 0.58);
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--paper) 72%, transparent);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+      -webkit-backdrop-filter: saturate(180%) blur(22px);
+      backdrop-filter: saturate(180%) blur(22px);
+      transition: transform 350ms ease, box-shadow 350ms ease;
+    }
+
+    .music-dock:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 18px 48px rgba(0, 0, 0, 0.17);
+    }
+
+    .music-disc-button {
+      width: 58px;
+      height: 58px;
+      display: grid;
+      place-items: center;
+      padding: 0;
+      border: 0;
+      border-radius: 50%;
+      background: transparent;
+      cursor: pointer;
+    }
+
+    .music-disc {
+      position: relative;
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at center, var(--rose) 0 13%, #f2d9de 14% 18%, #171719 19% 27%, transparent 28%),
+        repeating-radial-gradient(circle at center, #27272a 0 2px, #111113 3px 5px);
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.13), 0 6px 18px rgba(0, 0, 0, 0.22);
+    }
+
+    .music-disc::after {
+      content: "";
+      position: absolute;
+      top: 8px;
+      left: 12px;
+      width: 13px;
+      height: 5px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.22);
+      transform: rotate(-28deg);
+    }
+
+    .music-dock.playing .music-disc {
+      animation: record-spin 8s linear infinite;
+    }
+
+    .music-wave {
+      display: flex;
+      align-items: flex-end;
+      gap: 2px;
+      height: 14px;
+    }
+
+    .music-wave span {
+      width: 2px;
+      height: 4px;
+      border-radius: 999px;
+      background: var(--rose);
+    }
+
+    .music-dock.playing .music-wave span:nth-child(1) { animation: wave 0.9s ease-in-out infinite alternate; }
+    .music-dock.playing .music-wave span:nth-child(2) { animation: wave 0.65s ease-in-out 0.1s infinite alternate; }
+    .music-dock.playing .music-wave span:nth-child(3) { animation: wave 0.8s ease-in-out 0.2s infinite alternate; }
+    .music-dock.playing .music-wave span:nth-child(4) { animation: wave 0.7s ease-in-out 0.05s infinite alternate; }
+
+    @keyframes record-spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes wave {
+      to { height: 13px; }
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      background: rgba(0, 0, 0, 0.48);
+      /* Apple §12: 材质化登场——模糊半径与背景遮罩一起动，读起来像真实材质到场 */
+      -webkit-backdrop-filter: blur(0px);
+      backdrop-filter: blur(0px);
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: opacity 300ms ease, visibility 0s linear 300ms,
+                  backdrop-filter 300ms ease, -webkit-backdrop-filter 300ms ease;
+    }
+
+    .modal.open {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      -webkit-backdrop-filter: blur(16px);
+      backdrop-filter: blur(16px);
+      transition: opacity 300ms ease, visibility 0s,
+                  backdrop-filter 300ms ease, -webkit-backdrop-filter 300ms ease;
+    }
+
+    .dialog {
+      width: min(620px, 100%);
+      max-height: min(840px, 90svh);
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      background: var(--paper);
+      box-shadow: 0 30px 90px rgba(0, 0, 0, 0.26);
+      /* Apple §4/§12: 临界阻尼 ease-out（淡入菜单不回弹），materialize 登场 */
+      transform: scale(0.92) translateY(14px);
+      opacity: 0;
+      will-change: transform, opacity;
+      transition: transform 360ms cubic-bezier(0.22, 1, 0.36, 1), opacity 300ms ease;
+    }
+
+    .modal.open .dialog {
+      transform: scale(1) translateY(0);
+      opacity: 1;
+    }
+
+    .dialog-wide {
+      width: min(860px, 100%);
+    }
+
+    .dialog-header {
+      position: sticky;
+      top: 0;
+      z-index: 3;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--line);
+      background: color-mix(in srgb, var(--paper) 88%, transparent);
+      -webkit-backdrop-filter: blur(18px);
+      backdrop-filter: blur(18px);
+    }
+
+    .dialog-body {
+      padding: 26px;
+    }
+
+    .icon-button {
+      width: 40px;
+      height: 40px;
+      display: inline-grid;
+      place-items: center;
+      padding: 0;
+      color: var(--ink);
+      border: 0;
+      border-radius: 50%;
+      background: transparent;
+      cursor: pointer;
+      transition: color 220ms ease, background 220ms ease, transform 220ms ease;
+    }
+
+    .icon-button:hover {
+      color: var(--rose);
+      background: var(--paper-soft);
+      transform: scale(1.04);
+    }
+
+    .tabs {
+      display: flex;
+      overflow-x: auto;
+      border-bottom: 1px solid var(--line);
+      scrollbar-width: none;
+    }
+
+    .tabs::-webkit-scrollbar {
+      display: none;
+    }
+
+    .tab-button {
+      padding: 14px 20px;
+      color: var(--muted);
+      border: 0;
+      border-bottom: 2px solid transparent;
+      background: transparent;
+      font-size: 13px;
+      font-weight: 680;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+
+    .tab-button.active {
+      color: var(--rose);
+      border-bottom-color: var(--rose);
+    }
+
+    .tab-panel {
+      display: none;
+    }
+
+    .tab-panel.active {
+      display: block;
+    }
+
+    .admin-timeline-list {
+      display: grid;
+      gap: 10px;
+      max-height: 360px;
+      overflow: auto;
+    }
+
+    .admin-timeline-row {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--paper-soft);
+    }
+
+    .admin-timeline-thumb {
+      width: 48px;
+      height: 48px;
+      flex: 0 0 auto;
+      border-radius: 12px;
+      object-fit: cover;
+      background: var(--paper);
+    }
+
+    .admin-timeline-empty-thumb {
+      display: grid;
+      place-items: center;
+      color: var(--faint);
+      border: 1px dashed var(--line);
+    }
+
+    .lightbox {
+      position: fixed;
+      inset: 0;
+      z-index: 120;
+      color: #ffffff;
+      background: rgba(0, 0, 0, 0.95);
+      overflow: hidden;
+      touch-action: none;
+      /* Apple §12: 淡入而非硬切换 */
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: opacity 260ms ease, visibility 0s linear 260ms;
+    }
+
+    .lightbox.open {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      transition: opacity 260ms ease, visibility 0s;
+    }
+
+    .lightbox-stage {
+      position: absolute;
+      inset: 66px 72px 78px;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+    }
+
+    .lightbox-image {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      user-select: none;
+      -webkit-user-drag: none;
+      transform: scale(1);
+      transition: transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .lightbox-toolbar {
+      position: absolute;
+      inset: 14px 14px auto;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .lightbox-toolbar .icon-button,
+    .lightbox-nav {
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .lightbox-toolbar .icon-button:hover,
+    .lightbox-nav:hover {
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .lightbox-nav {
+      position: absolute;
+      top: 50%;
+      z-index: 2;
+      transform: translateY(-50%);
+    }
+
+    .lightbox-prev { left: 18px; }
+    .lightbox-next { right: 18px; }
+
+    .lightbox-caption {
+      position: absolute;
+      right: 22px;
+      bottom: 22px;
+      left: 22px;
+      color: rgba(255, 255, 255, 0.72);
+      text-align: center;
+      font-size: 13px;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 28px;
+      z-index: 200;
+      max-width: min(90vw, 480px);
+      padding: 12px 20px;
+      color: #ffffff;
+      text-align: center;
+      border-radius: 999px;
+      background: #1d1d1f;
+      box-shadow: 0 12px 34px rgba(0, 0, 0, 0.22);
+      opacity: 0;
+      pointer-events: none;
+      transform: translate(-50%, 14px);
+      transition: opacity 260ms ease, transform 260ms ease;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+
+    .heart-particle {
+      position: fixed;
+      z-index: 190;
+      pointer-events: none;
+      animation: heart-float 2.2s cubic-bezier(0.2, 0.7, 0.25, 1) forwards;
+    }
+
+    @keyframes heart-float {
+      0% { opacity: 0; transform: translateY(10px) scale(0.7) rotate(0); }
+      15% { opacity: 1; }
+      100% { opacity: 0; transform: translateY(-190px) scale(1.25) rotate(22deg); }
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 760ms ease, transform 760ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .skeleton {
+      min-height: 180px;
+      border-radius: 24px;
+      background: color-mix(in srgb, var(--paper) 62%, var(--line));
+      animation: skeleton-pulse 1.1s ease-in-out infinite alternate;
+    }
+
+    @keyframes skeleton-pulse {
+      to { opacity: 0.45; }
+    }
+
+    .mobile-menu {
+      display: block;
+      position: fixed;
+      top: 72px;
+      right: 14px;
+      left: 14px;
+      z-index: 48;
+      padding: 8px;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: color-mix(in srgb, var(--paper) 88%, transparent);
+      box-shadow: var(--shadow-md);
+      -webkit-backdrop-filter: blur(22px);
+      backdrop-filter: blur(22px);
+      /* Apple §7: 从顶部滑入，关闭时沿同一路径退回（进出对称） */
+      transform: translateY(-16px) scale(0.98);
+      transform-origin: top center;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: opacity 260ms ease, transform 260ms cubic-bezier(0.22, 1, 0.36, 1),
+                  visibility 0s linear 260ms;
+      will-change: transform, opacity;
+    }
+
+    .mobile-menu.open {
+      transform: translateY(0) scale(1);
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      transition: opacity 260ms ease, transform 260ms cubic-bezier(0.22, 1, 0.36, 1),
+                  visibility 0s;
+    }
+
+    .mobile-menu a {
+      display: block;
+      padding: 13px 14px;
+      color: var(--ink);
+      text-decoration: none;
+      border-radius: 14px;
+      font-size: 14px;
+    }
+
+    .mobile-menu a:hover {
+      background: var(--paper-soft);
+    }
+
+    .mobile-menu-group {
+      display: block;
+      padding: 12px 14px 4px;
+      font-size: 10px;
+      font-weight: 750;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--rose);
+    }
+
+    .nav-group {
+      position: relative;
+    }
+
+    .nav-group-trigger {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      background: none;
+      color: inherit;
+      font: inherit;
+      font-weight: 500;
+      cursor: pointer;
+      transition: color 200ms ease;
+    }
+
+    .nav-group-trigger:hover,
+    .nav-group:focus-within .nav-group-trigger {
+      color: var(--rose);
+    }
+
+    .nav-group-trigger svg {
+      width: 14px;
+      height: 14px;
+      transition: transform 200ms ease;
+    }
+
+    .nav-group:hover .nav-group-trigger svg,
+    .nav-group:focus-within .nav-group-trigger svg {
+      transform: rotate(180deg);
+    }
+
+    .nav-dropdown {
+      position: absolute;
+      top: calc(100% + 16px);
+      left: 50%;
+      z-index: 49;
+      min-width: 172px;
+      padding: 8px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: color-mix(in srgb, var(--paper) 92%, transparent);
+      box-shadow: var(--shadow-md);
+      -webkit-backdrop-filter: blur(22px);
+      backdrop-filter: blur(22px);
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transform: translateX(-50%) translateY(-8px);
+      transition: opacity 200ms ease, transform 200ms cubic-bezier(0.22, 1, 0.36, 1),
+                  visibility 0s linear 200ms;
+    }
+
+    .nav-dropdown::before {
+      content: "";
+      position: absolute;
+      top: -16px;
+      left: 0;
+      right: 0;
+      height: 16px;
+    }
+
+    .nav-group:hover .nav-dropdown,
+    .nav-group:focus-within .nav-dropdown {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      transform: translateX(-50%) translateY(0);
+      transition: opacity 200ms ease, transform 200ms cubic-bezier(0.22, 1, 0.36, 1),
+                  visibility 0s;
+    }
+
+    .nav-dropdown a {
+      display: block;
+      padding: 9px 12px;
+      border-radius: 10px;
+      color: var(--ink);
+      text-decoration: none;
+      font-size: 13px;
+      white-space: nowrap;
+      transition: background 160ms ease, color 160ms ease;
+    }
+
+    .nav-dropdown a:hover {
+      background: var(--paper-soft);
+      color: var(--rose);
+    }
+
+    .anniversary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(258px, 1fr));
+      gap: 18px;
+      max-width: 1080px;
+      margin: 0 auto;
+    }
+
+    .anniversary-card {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      padding: 26px 26px 24px;
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      background: var(--paper);
+    }
+
+    .anniversary-card:hover {
+      border-color: color-mix(in srgb, var(--rose) 40%, var(--line));
+    }
+
+    .anniversary-card-head {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .anniversary-icon {
+      width: 42px;
+      height: 42px;
+      display: grid;
+      place-items: center;
+      flex: 0 0 auto;
+      border-radius: 50%;
+      color: var(--rose);
+      background: var(--rose-soft);
+    }
+
+    .anniversary-date {
+      display: block;
+      margin-top: 2px;
+      font-size: 11px;
+      color: var(--faint);
+    }
+
+    .anniversary-badge {
+      align-self: flex-start;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 10px;
+      font-weight: 650;
+      color: var(--rose);
+      background: var(--rose-soft);
+    }
+
+    .anniversary-countdown {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+
+    .anniversary-count {
+      font-size: 38px;
+      font-weight: 760;
+      line-height: 1;
+      color: var(--ink);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .anniversary-count-label {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .anniversary-note {
+      margin: 0;
+      font-size: 12px;
+      line-height: 1.7;
+      color: var(--muted);
+    }
+
+    @media (max-width: 900px) {
+      .desktop-nav { display: none !important; }
+      .mobile-only { display: inline-grid !important; }
+
+      .hero {
+        min-height: calc(100svh - 72px);
+      }
+
+      .hero-image {
+        object-position: 48% center;
+      }
+
+      .hero-overlay {
+        background: linear-gradient(0deg, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.2) 76%);
+      }
+
+      .hero-content {
+        padding: 90px 0 112px;
+      }
+
+      .dashboard-wrap {
+        margin-top: -58px;
+        padding-bottom: 96px;
+      }
+
+      .dashboard-card {
+        grid-template-columns: 1fr;
+      }
+
+      .dashboard-side {
+        border-top: 1px solid var(--line);
+        border-left: 0;
+      }
+
+      .section-band {
+        padding: 96px 0;
+      }
+
+      .timeline::before {
+        left: 6px;
+      }
+
+      .timeline-row {
+        display: block;
+        margin: 0 0 28px 36px;
+      }
+
+      .timeline-row::after {
+        left: -30px;
+        top: 34px;
+      }
+
+      .timeline-spacer {
+        display: none;
+      }
+
+      .message-layout {
+        grid-template-columns: 1fr;
+        gap: 54px;
+      }
+
+      .message-compose {
+        position: static;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .site-container {
+        width: min(100% - 30px, 1180px);
+      }
+
+      .hero-title {
+        font-size: clamp(44px, 15vw, 66px);
+      }
+
+      .hero-copy {
+        font-size: 15px;
+      }
+
+      .dashboard-main,
+      .dashboard-side {
+        padding: 32px 24px;
+      }
+
+      .days-number {
+        font-size: clamp(74px, 25vw, 112px);
+      }
+
+      .countdown-grid {
+        gap: 6px;
+      }
+
+      .countdown-unit {
+        padding: 13px 4px 11px;
+        border-radius: 13px;
+      }
+
+      .section-header {
+        margin-bottom: 48px;
+      }
+
+      .section-title {
+        font-size: clamp(36px, 11vw, 50px);
+      }
+
+      .gallery-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-auto-rows: 180px;
+        gap: 10px;
+      }
+
+      .gallery-card,
+      .gallery-card:nth-child(n) {
+        grid-column: span 1;
+        grid-row: span 1;
+      }
+
+      .gallery-card:nth-child(1),
+      .gallery-card:nth-child(6) {
+        grid-column: span 2;
+      }
+
+      .wishlist-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .message-compose {
+        padding: 23px;
+      }
+
+      .message-bubble {
+        margin-left: 8px;
+        padding: 22px 20px;
+      }
+
+      .music-dock {
+        right: 14px;
+        bottom: 14px;
+        padding: 6px;
+      }
+
+      .music-disc-button {
+        width: 52px;
+        height: 52px;
+      }
+
+      .music-disc {
+        width: 48px;
+        height: 48px;
+      }
+
+      .music-meta {
+        display: none;
+      }
+
+      .lightbox-stage {
+        inset: 62px 8px 78px;
+      }
+
+      .lightbox-prev { left: 8px; }
+      .lightbox-next { right: 8px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        scroll-behavior: auto !important;
+      }
+      /* Apple §14: 不是「无反馈」，而是用柔和的透明度交叉淡入替代位移/弹簧 */
+      .dialog, .lightbox-image, .mobile-menu {
+        transform: none !important;
+      }
+      .modal, .lightbox, .mobile-menu, .toast {
+        transition: opacity 200ms ease !important;
+      }
+      /* 停掉持续循环动画（唱片旋转、声波、骨架脉冲）以避免前庭不适 */
+      .music-disc-button, .music-wave span, .skeleton, .hero {
+        animation: none !important;
+      }
+    }
+  </style>
+  <link rel="stylesheet" href="/static/refactor.css?v=20260719">
 </head>
 
 <body>
@@ -21,32 +1515,52 @@
       </a>
 
       <div class="desktop-nav flex items-center gap-8 text-[13px] font-medium" style="color:var(--muted)">
-        <a href="#days" class="no-underline hover:text-roseGold transition-colors">纪念日</a>
-        <a href="#timeline" class="no-underline hover:text-roseGold transition-colors">时光机</a>
-        <a href="#gallery" class="no-underline hover:text-roseGold transition-colors">相册</a>
-        <a href="#wishlist" class="no-underline hover:text-roseGold transition-colors">心愿单</a>
-        <a href="#messages" class="no-underline hover:text-roseGold transition-colors">留言板</a>
+        <div class="nav-group">
+          <button class="nav-group-trigger" type="button" aria-haspopup="true" aria-expanded="false">我们的日子 <i data-lucide="chevron-down"></i></button>
+          <div class="nav-dropdown">
+            <a href="#days">恋爱进度</a>
+            <a href="#anniversaries">纪念日中心</a>
+          </div>
+        </div>
+        <div class="nav-group">
+          <button class="nav-group-trigger" type="button" aria-haspopup="true" aria-expanded="false">回忆 <i data-lucide="chevron-down"></i></button>
+          <div class="nav-dropdown">
+            <a href="#timeline">时光机</a>
+            <a href="#gallery">相册</a>
+          </div>
+        </div>
+        <div class="nav-group">
+          <button class="nav-group-trigger" type="button" aria-haspopup="true" aria-expanded="false">心意 <i data-lucide="chevron-down"></i></button>
+          <div class="nav-dropdown">
+            <a href="#wishlist">心愿单</a>
+            <a href="#messages">留言板</a>
+          </div>
+        </div>
       </div>
 
       <div class="flex items-center gap-1">
         <button id="theme-button" type="button" class="icon-button" aria-label="切换深色模式" title="切换外观"><i data-lucide="moon" class="w-[17px] h-[17px]"></i></button>
         <button id="admin-button" type="button" class="icon-button" aria-label="打开管理后台" title="管理后台"><i data-lucide="lock-keyhole" class="w-[17px] h-[17px]"></i></button>
-        <button id="menu-button" type="button" class="icon-button mobile-only hidden" aria-label="打开导航" aria-controls="mobile-menu" aria-expanded="false"><i data-lucide="menu" class="w-5 h-5"></i></button>
+        <button id="menu-button" type="button" class="icon-button mobile-only hidden" aria-label="打开导航"><i data-lucide="menu" class="w-5 h-5"></i></button>
       </div>
     </div>
   </nav>
 
   <div id="mobile-menu" class="mobile-menu">
-    <a href="#days">纪念日</a>
+    <span class="mobile-menu-group">我们的日子</span>
+    <a href="#days">恋爱进度</a>
+    <a href="#anniversaries">纪念日中心</a>
+    <span class="mobile-menu-group">回忆</span>
     <a href="#timeline">时光机</a>
     <a href="#gallery">相册</a>
+    <span class="mobile-menu-group">心意</span>
     <a href="#wishlist">心愿单</a>
     <a href="#messages">留言板</a>
   </div>
 
   <main>
     <section id="home" class="hero" aria-labelledby="hero-heading">
-      <img class="hero-image" src="/static/20251226_一起看海.jpg" alt="李欣和王雅婷在海边的合影" fetchpriority="high" decoding="async">
+      <img class="hero-image" src="/static/20251226_一起看海.jpg" alt="李欣和王雅婷在海边的合影">
       <div class="hero-overlay"></div>
       <div class="site-container">
         <div class="hero-content">
@@ -93,6 +1607,17 @@
             <p id="countdown-exact" class="mt-5 mb-0 text-[10px] leading-5 text-center" style="color:var(--faint)">正在计算我们共同走过的精确时间…</p>
           </div>
         </div>
+      </div>
+    </section>
+
+    <section id="anniversaries" class="section-band section-band-white">
+      <div class="site-container">
+        <header class="section-header reveal">
+          <div class="section-kicker">Anniversary Center</div>
+          <h2 class="section-title font-sans tracking-tight font-bold text-neutral-900">纪念日中心</h2>
+          <p class="section-description text-neutral-500 font-normal">把值得铭记的日子都收进这里，倒数着与每一个约定重逢。</p>
+        </header>
+        <div id="anniversary-grid" class="anniversary-grid" aria-live="polite"><div class="skeleton"></div><div class="skeleton"></div></div>
       </div>
     </section>
 
@@ -219,6 +1744,8 @@
 
       <div class="tabs" role="tablist">
         <button class="tab-button active" data-tab="admin-timeline-panel" type="button">管理时光</button>
+        <button class="tab-button" data-tab="admin-anniversaries-panel" type="button">管理纪念日</button>
+        <button class="tab-button" data-tab="admin-wishlist-panel" type="button">管理心愿</button>
         <button class="tab-button" data-tab="admin-messages-panel" type="button">管理留言</button>
         <button class="tab-button" data-tab="admin-security-panel" type="button">安全设置</button>
       </div>
@@ -227,7 +1754,6 @@
         <section id="admin-timeline-panel" class="tab-panel active">
           <form id="timeline-form">
             <input id="editing-timeline-id" type="hidden">
-            <input id="timeline-thumbnail" type="hidden">
             <div class="flex items-center justify-between gap-4 mb-5">
               <div>
                 <h3 id="timeline-form-heading" class="m-0 text-[17px] font-bold">添加一段新时光</h3>
@@ -240,13 +1766,12 @@
               <div><label class="field-label" for="timeline-title">标题</label><input id="timeline-title" class="field" maxlength="80" required></div>
             </div>
             <div class="mt-4"><label class="field-label" for="timeline-description">描述</label><textarea id="timeline-description" class="field" maxlength="1000" required></textarea></div>
-            <div class="mt-4"><label class="field-label" for="timeline-image">站内照片地址</label><input id="timeline-image" class="field" placeholder="/photos/照片.jpg 或 /static/照片.jpg" inputmode="url"></div>
+            <div class="mt-4"><label class="field-label" for="timeline-image">照片地址或 Base64</label><input id="timeline-image" class="field" placeholder="上传照片后自动填写，也可粘贴 Base64"></div>
             <div class="mt-4 p-5 border rounded-[18px]" style="border-color:var(--line);background:var(--paper-soft)">
               <div class="flex flex-wrap items-center gap-3">
-                <input id="photo-file" type="file" accept="image/jpeg,image/png,image/webp" class="text-[12px] max-w-full">
+                <input id="photo-file" type="file" accept="image/jpeg,image/png,image/webp,image/gif" class="text-[12px] max-w-full">
                 <button id="upload-button" type="button" class="secondary-button"><i data-lucide="upload" class="w-4 h-4"></i><span>上传照片</span></button>
               </div>
-              <p class="m-0 mt-2 text-[10px]" style="color:var(--faint)">支持 JPG、PNG、WebP，单张不超过 5 MiB。</p>
               <img id="upload-preview" class="hidden mt-4 w-full max-h-60 object-contain rounded-[16px]" alt="照片预览">
               <p id="upload-status" class="m-0 mt-2 text-[11px]" style="color:var(--muted)"></p>
             </div>
@@ -262,6 +1787,57 @@
           </div>
         </section>
 
+        <section id="admin-anniversaries-panel" class="tab-panel">
+          <form id="anniversary-form">
+            <input id="editing-anniversary-id" type="hidden">
+            <div class="flex items-center justify-between gap-4 mb-5">
+              <div>
+                <h3 id="anniversary-form-heading" class="m-0 text-[17px] font-bold">添加一个纪念日</h3>
+                <p class="m-0 mt-1 text-[11px]" style="color:var(--faint)">记录你们值得庆祝的日子，可设为每年循环。</p>
+              </div>
+              <button id="cancel-anniversary-edit-button" class="secondary-button hidden" type="button">取消编辑</button>
+            </div>
+            <div class="grid md:grid-cols-2 gap-4">
+              <div><label class="field-label" for="anniversary-title-input">名称</label><input id="anniversary-title-input" class="field" maxlength="40" required></div>
+              <div><label class="field-label" for="anniversary-date-input">日期</label><input id="anniversary-date-input" type="date" class="field" required></div>
+            </div>
+            <div class="mt-4"><label class="field-label" for="anniversary-note-input">备注（可选）</label><input id="anniversary-note-input" class="field" maxlength="200" placeholder="写下这个日子的小故事"></div>
+            <label class="flex items-center gap-2 mt-4 text-[13px]" style="color:var(--muted)"><input id="anniversary-recurring-input" type="checkbox" checked> 每年循环（周年）</label>
+            <button id="anniversary-submit-button" class="primary-button w-full mt-5" type="submit"><i data-lucide="plus" class="w-4 h-4"></i><span>加入纪念日</span></button>
+          </form>
+
+          <div class="mt-9 pt-7 border-t" style="border-color:var(--line)">
+            <div class="flex items-center justify-between gap-3 mb-4">
+              <h3 class="m-0 text-[16px] font-bold">已有纪念日</h3>
+              <span id="admin-anniversaries-count" class="text-[11px]" style="color:var(--faint)"></span>
+            </div>
+            <div id="admin-anniversaries-list" class="admin-timeline-list"><div class="skeleton"></div></div>
+          </div>
+        </section>
+
+        <section id="admin-wishlist-panel" class="tab-panel">
+          <form id="wishlist-form">
+            <input id="editing-wish-id" type="hidden">
+            <div class="flex items-center justify-between gap-4 mb-5">
+              <div>
+                <h3 id="wishlist-form-heading" class="m-0 text-[17px] font-bold">添加一个新心愿</h3>
+                <p class="m-0 mt-1 text-[11px]" style="color:var(--faint)">写下你们想一起完成的小小心愿。</p>
+              </div>
+              <button id="cancel-wishlist-edit-button" class="secondary-button hidden" type="button">取消编辑</button>
+            </div>
+            <div><label class="field-label" for="wishlist-title-input">心愿内容</label><input id="wishlist-title-input" class="field" maxlength="80" required></div>
+            <button id="wishlist-submit-button" class="primary-button w-full mt-5" type="submit"><i data-lucide="plus" class="w-4 h-4"></i><span>加入心愿单</span></button>
+          </form>
+
+          <div class="mt-9 pt-7 border-t" style="border-color:var(--line)">
+            <div class="flex items-center justify-between gap-3 mb-4">
+              <h3 class="m-0 text-[16px] font-bold">已有心愿</h3>
+              <span id="admin-wishlist-count" class="text-[11px]" style="color:var(--faint)"></span>
+            </div>
+            <div id="admin-wishlist-list" class="admin-timeline-list"><div class="skeleton"></div></div>
+          </div>
+        </section>
+
         <section id="admin-messages-panel" class="tab-panel">
           <div id="admin-message-list"><div class="skeleton"></div></div>
         </section>
@@ -269,7 +1845,7 @@
         <section id="admin-security-panel" class="tab-panel">
           <form id="password-form" class="max-w-md">
             <div><label class="field-label" for="current-password">当前口令</label><input id="current-password" type="password" class="field" required></div>
-            <div class="mt-4"><label class="field-label" for="new-password">新口令（至少 12 位）</label><input id="new-password" type="password" minlength="12" maxlength="128" class="field" required></div>
+            <div class="mt-4"><label class="field-label" for="new-password">新口令（至少 8 位）</label><input id="new-password" type="password" minlength="8" maxlength="128" class="field" required></div>
             <button class="primary-button mt-5" type="submit"><i data-lucide="key-round" class="w-4 h-4"></i><span>更新口令</span></button>
           </form>
         </section>
@@ -294,8 +1870,5 @@
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-  <script defer src="/static/vendor/lucide-0.468.0.min.js"></script>
-  <script defer src="/static/vendor/canvas-confetti-1.9.3.min.js"></script>
-  <script defer src="/static/app.js"></script>
 </body>
 </html>

@@ -67,9 +67,11 @@ Nginx :80/:443
 ### 前端
 
 - 恋爱天数和纪念日倒计时。
+- 纪念日中心：可设置每年循环或一次性的纪念日，前台以倒计时/正计时卡片展示「距下一次」或「已过/还剩」，后台可增删改。
+- 二级下拉导航分组：我们的日子（恋爱进度 · 纪念日中心）、回忆（时光机 · 相册）、心意（心愿单 · 留言板）；纯 CSS hover/focus 下拉，移动端沿用折叠菜单。
 - 时间线卡片、相册、灯箱与背景音乐。
 - 心愿单和公开留言板。
-- 管理员登录、时间线维护、图片上传、留言删除和密码修改。
+- 管理员登录、时间线维护、纪念日维护、图片上传、留言删除和密码修改。
 - Tailwind CSS 在构建阶段生成 `static/site.css`；浏览器不再运行 Tailwind Play CDN。
 - 主脚本为 `static/app.js`，Lucide 与 canvas-confetti 固定版本并从 `static/vendor/` 同源加载。
 - `app.js` 与 `site.css` 使用 `no-cache` 重新验证；带版本号的 vendor 文件可长缓存，避免发布后旧前端与新 API 错配。
@@ -92,6 +94,10 @@ Nginx :80/:443
 | `POST /api/timeline` | 新增时间线 | 管理员 |
 | `PUT /api/admin/timeline/{id}` | 更新时间线 | 管理员 |
 | `DELETE /api/admin/timeline/{id}` | 删除时间线 | 管理员 |
+| `GET /api/anniversaries` | 获取纪念日 | 公开 |
+| `POST /api/anniversaries` | 新增纪念日 | 管理员 |
+| `PUT /api/admin/anniversaries/{id}` | 更新纪念日 | 管理员 |
+| `DELETE /api/admin/anniversaries/{id}` | 删除纪念日 | 管理员 |
 | `GET /api/messages` | 最近留言 | 公开 |
 | `POST /api/messages` | 新增留言 | 公开、受限流 |
 | `DELETE /api/messages/{id}` | 删除留言 | 管理员 |
@@ -779,6 +785,20 @@ curl --fail http://127.0.0.1:8000/api/health
 ```
 
 不要把代码回滚等同于数据回滚。只有确认 schema 兼容或有完整恢复计划时，才恢复旧数据库。
+
+## 与 GitHub 同步（代码 + README 一起入库）
+
+仓库：`Xin-Li-bot/Love-story`。约定：**每次改动都先在服务器部署验证，再同步回 GitHub（代码与 README 一起）**，让仓库反映生产状态。
+
+工作流（在生产工作树 `/opt/love-story/current`）：
+
+1. 改代码 → 部署到生产并验证（health、Xray pid、内存、浏览器冒烟）。
+2. 同步更新本 README（功能说明、API 表、`?v=` 缓存约定）。
+3. `.gitignore` 排除部署备份：`*.predeploy.*`、`*.bak.*`、`*.pre-*`。
+4. 仅暂存真实生产文件：`main.py`、`index.html`、`static/refactor-app.js`、`static/refactor.css`、`README.md`；确认 `git status` 不含任何备份文件或 token。
+5. 提交后一次性直推（**不把 PAT 写入 git config**）：`git push https://<PAT>@github.com/Xin-Li-bot/Love-story.git HEAD:production-live`。
+
+安全：PAT 仅在推送命令行临时使用，绝不写入仓库、git config 或日志；`?v=` 资源版本号在前端资源改动时递增（当前 `?v=20260719`）以绕过旧缓存。
 
 ## 部署文件索引
 
